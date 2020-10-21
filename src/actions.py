@@ -1,3 +1,4 @@
-def connect_to_server(ip):
-    """Server connect logic goes here"""
-    return "Coming Soon..."
+import api
+
+def connect(ip):
+    api.enter_cmd("{/}connect " + api.escape(ip))
