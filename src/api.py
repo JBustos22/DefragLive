@@ -7,12 +7,15 @@ AHK = AHK()
 WINDOW = AHK.find_window(title=config.DF_WIN_TITLE)
 
 
-def enter_cmd(cmd):
-    open_console()
-    WINDOW.send(cmd + "{Enter}", raw=False, delay=30, blocking=True, press_duration=30)
+def exec_command(cmd):
+    with open(config.DF_DIR + "\\twitch_cmd.cfg", "w+") as f:
+        f.write(cmd)
+        f.close()
+    enter_input(config.get_bind("exec twitch_cmd.cfg"))
 
-    if not "connect" in cmd:
-        close_console()
+
+def enter_input(cmd):
+    WINDOW.send(cmd + "{Enter}", raw=False, delay=30, blocking=True, press_duration=30)
 
 
 def press_key(x):
@@ -26,14 +29,14 @@ def hold_key(x, duration):
 # Question 1: How to force console state open/closed?
 # Answer: Escape -> Escape -> Console Bind
 # This will force the console open regardless of its initial state
-def open_console():
-    cmd = "{Esc}{Esc}" + "+" + config.get_bind("toggleconsole")
-    WINDOW.send(cmd, raw=False, delay=100, blocking=True, press_duration=100)
+# def open_console():
+#     cmd = "{Esc}{Esc}" + "+" + config.get_bind("toggleconsole")
+#     WINDOW.send(cmd, raw=False, delay=100, blocking=True, press_duration=100)
 
 
-def close_console():
-    cmd = "{Esc}{Esc}"
-    WINDOW.send(cmd, raw=False, delay=100, blocking=True, press_duration=100)
+# def close_console():
+#     cmd = "{Esc}{Esc}"
+#     WINDOW.send(cmd, raw=False, delay=100, blocking=True, press_duration=100)
 
 
 def escape(arg):

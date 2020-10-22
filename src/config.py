@@ -1,11 +1,11 @@
 import re
 import os
 import api
+from dotenv import load_dotenv
 
+load_dotenv()
+DF_DIR, CFG_NAME = os.environ['DF_DIR'], os.environ['CFG_NAME']
 DF_WIN_TITLE = b"iDFe"
-SRC_DIR = "C:\\Users\\Jorge\\PycharmProjects\\TwitchBot\\src"
-DF_DIR = "C:\\Users\\Jorge\\Desktop\\Defrag\\defrag"
-CFG_NAME = "twitchbot.cfg"
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 
 BINDS = None

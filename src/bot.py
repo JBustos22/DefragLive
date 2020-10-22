@@ -35,36 +35,34 @@ async def event_message(ctx):
 
     # bot.py, at the bottom of event_message
     if message.startswith("!"):
-        split_msg = message.split(' ')
-        cmd = split_msg[0].strip('!')
+        message = message.strip('!')
         if ";" in message:
             message = message[:message.index(";")]
-        args = split_msg[1:] if len(split_msg) > 0 else None
+        split_msg = message.split(' ')
+        cmd = split_msg[0]
 
         if cmd == "connect":
-            server_ip = args[0]
-            reply = actions.connect(server_ip)
-            await ctx.channel.send(reply)
+            api.exec_command(message)
         elif cmd == "switch":
-            api.enter_cmd(config.get_bind("+attack"))
+            api.enter_input(config.get_bind("+attack"))
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 2000)
         elif cmd == "triggers":
-            api.enter_cmd(config.get_bind("toggle scr_triggers_draw 0 1"))
+            api.enter_input(config.get_bind("toggle scr_triggers_draw 0 1"))
         elif cmd == "clips":
-            api.enter_cmd(config.get_bind("toggle scr_clips_draw 0 1"))
+            api.enter_input(config.get_bind("toggle scr_clips_draw 0 1"))
         elif cmd == "snaps":
-            api.enter_cmd(config.get_bind("toggle scr_hud_snap_draw 0 1"))
+            api.enter_input(config.get_bind("toggle scr_hud_snap_draw 0 1"))
         elif cmd == "checkpoints":
-            api.enter_cmd(config.get_bind("toggle df_checkpoints 0 2"))
+            api.enter_input(config.get_bind("toggle df_checkpoints 0 2"))
         elif cmd == "nodraw":
-            api.enter_cmd(config.get_bind("toggle df_mp_NoDrawRadius 100 100000"))
+            api.enter_input(config.get_bind("toggle df_mp_NoDrawRadius 100 100000"))
         elif cmd == "angles":
-            api.enter_cmd(config.get_bind("toggle df_chs1_Info6 0 40"))
+            api.enter_input(config.get_bind("toggle df_chs1_Info6 0 40"))
         elif cmd == "obs":
-            api.enter_cmd(config.get_bind("toggle df_chs1_Info7 0 50"))
+            api.enter_input(config.get_bind("toggle df_chs1_Info7 0 50"))
         elif cmd == "clean":
-            api.enter_cmd(config.get_bind("toggle cg_draw2D 0 1"))
+            api.enter_input(config.get_bind("toggle cg_draw2D 0 1"))
     return
 
 
