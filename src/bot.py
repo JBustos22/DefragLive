@@ -51,6 +51,8 @@ async def event_message(ctx):
             api.send_input(config.get_bind("toggle scr_triggers_draw 0 1"))
         elif cmd == "clips":
             api.send_input(config.get_bind("toggle scr_clips_draw 0 1"))
+        elif cmd == "cgaz":
+            api.send_input(config.get_bind("toggle df_hud_cgaz 0 13"))
         elif cmd == "snaps":
             api.send_input(config.get_bind("toggle scr_hud_snap_draw 0 1"))
         elif cmd == "checkpoints":
