@@ -41,7 +41,7 @@ def validate_cfg():
     global BINDS
 
     # Replace all binds with their AHK equivalents, if necessary
-    BINDS["toggleconsole"] = "{VKDC}"
+    BINDS["toggleconsole"] = "{SC029}"
 
     for (cmd, bind) in BINDS.items():
         if cmd == "toggleconsole":
