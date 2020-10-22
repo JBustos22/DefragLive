@@ -35,7 +35,7 @@ async def event_message(ctx):
 
     # bot.py, at the bottom of event_message
     if message.startswith("!"):
-        split_msg = message.split(' ')[0].strip('!')
+        split_msg = message.strip('!').split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
 
