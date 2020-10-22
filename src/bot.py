@@ -37,6 +37,8 @@ async def event_message(ctx):
     if message.startswith("!"):
         split_msg = message.split(' ')
         cmd = split_msg[0].strip('!')
+        if ";" in message:
+            message = message[:message.index(";")]
         args = split_msg[1:] if len(split_msg) > 0 else None
 
         if cmd == "connect":

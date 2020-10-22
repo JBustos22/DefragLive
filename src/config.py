@@ -4,7 +4,6 @@ import api
 
 DF_WIN_TITLE = b"iDFe"
 SRC_DIR = "C:\\Users\\Jorge\\PycharmProjects\\TwitchBot\\src"
-
 DF_DIR = "C:\\Users\\Jorge\\Desktop\\Defrag\\defrag"
 CFG_NAME = "twitchbot.cfg"
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
@@ -44,7 +43,7 @@ def validate_cfg():
     global BINDS
 
     # Replace all binds with their AHK equivalents, if necessary
-    BINDS["toggleconsole"] = "{VKDC}"
+    BINDS["toggleconsole"] = "{SC029}"
 
     for (cmd, bind) in BINDS.items():
         if cmd == "toggleconsole":
