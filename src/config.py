@@ -6,7 +6,7 @@ DF_WIN_TITLE = b"iDFe"
 SRC_DIR = "C:\\Users\Donald\\Documents\\GitHub\\DFTwitchBot\\src"
 
 DF_DIR = "E:\\GAMES\\DEFRAG SCRAPE\\defrag"
-CFG_NAME = "q3config.cfg"
+CFG_NAME = "twitchbot.cfg"
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 
 BINDS = None
