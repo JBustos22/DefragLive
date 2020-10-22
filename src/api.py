@@ -18,6 +18,7 @@ def enter_cmd(cmd):
 def press_key(x):
     WINDOW.send(x, raw=False, blocking=True, press_duration=30)
 
+
 def hold_key(x, duration):
     WINDOW.send(x, raw=False, blocking=True, press_duration=duration)
 

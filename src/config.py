@@ -3,13 +3,14 @@ import os
 import api
 
 DF_WIN_TITLE = b"iDFe"
-SRC_DIR = "C:\\Users\Donald\\Documents\\GitHub\\DFTwitchBot\\src"
+SRC_DIR = "C:\\Users\\Jorge\\PycharmProjects\\TwitchBot\\src"
 
-DF_DIR = "E:\\GAMES\\DEFRAG SCRAPE\\defrag"
-CFG_NAME = "q3config.cfg"
+DF_DIR = "C:\\Users\\Jorge\\Desktop\\Defrag\\defrag"
+CFG_NAME = "twitchbot.cfg"
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 
 BINDS = None
+
 
 def get_bind(cmd):
     global BINDS
@@ -17,6 +18,7 @@ def get_bind(cmd):
         read_cfg()
 
     return BINDS[cmd]
+
 
 def read_cfg():
     global BINDS
@@ -36,6 +38,7 @@ def read_cfg():
             continue
 
     validate_cfg()
+
 
 def validate_cfg():
     global BINDS
