@@ -46,27 +46,27 @@ async def event_message(ctx):
             reply = actions.connect(server_ip)
             await ctx.Channel.send(reply)
         elif cmd == "switch":
-            api.send_input(config.get_bind("+attack"))
+            api.press_key(config.get_bind("+attack"))
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 2000)
         elif cmd == "triggers":
-            api.send_input(config.get_bind("toggle scr_triggers_draw 0 1"))
+            api.press_key(config.get_bind("toggle scr_triggers_draw 0 1"))
         elif cmd == "clips":
-            api.send_input(config.get_bind("toggle scr_clips_draw 0 1"))
+            api.press_key(config.get_bind("toggle scr_clips_draw 0 1"))
         elif cmd == "cgaz":
-            api.send_input(config.get_bind("toggle df_hud_cgaz 0 13"))
+            api.press_key(config.get_bind("toggle df_hud_cgaz 0 13"))
         elif cmd == "snaps":
-            api.send_input(config.get_bind("toggle scr_hud_snap_draw 0 1"))
+            api.press_key(config.get_bind("toggle scr_hud_snap_draw 0 1"))
         elif cmd == "checkpoints":
-            api.send_input(config.get_bind("toggle df_checkpoints 0 2"))
+            api.press_key(config.get_bind("toggle df_checkpoints 0 2"))
         elif cmd == "nodraw":
-            api.send_input(config.get_bind("toggle df_mp_NoDrawRadius 100 100000"))
+            api.press_key(config.get_bind("toggle df_mp_NoDrawRadius 100 100000"))
         elif cmd == "angles":
-            api.send_input(config.get_bind("toggle df_chs1_Info6 0 40"))
+            api.press_key(config.get_bind("toggle df_chs1_Info6 0 40"))
         elif cmd == "obs":
-            api.send_input(config.get_bind("toggle df_chs1_Info7 0 50"))
+            api.press_key(config.get_bind("toggle df_chs1_Info7 0 50"))
         elif cmd == "clean":
-            api.send_input(config.get_bind("toggle cg_draw2D 0 1"))
+            api.press_key(config.get_bind("toggle cg_draw2D 0 1"))
     return
 
 
