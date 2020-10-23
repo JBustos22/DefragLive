@@ -42,19 +42,17 @@ def read_cfg():
 def validate_cfg():
     global BINDS
 
-    # Replace all binds with their AHK equivalents, if necessary
-    BINDS["toggleconsole"] = "{SC029}"
+    # Replace all binds with their proper equivalents, if necessary
+    BINDS["toggleconsole"] = 29
 
     for (cmd, bind) in BINDS.items():
         if cmd == "toggleconsole":
             continue
         elif bind == "ENTER":
-            BINDS[cmd] = "{Enter}"
+            BINDS[cmd] = "enter"
         elif bind == "ESCAPE":
-            BINDS[cmd] = "{Escape}"
+            BINDS[cmd] = "esc"
         elif bind == "TAB":
-            BINDS[cmd] = "{Tab}"
-        elif re.match(r"F\d+?", bind):
-            BINDS[cmd] = "{" + bind + "}"
+            BINDS[cmd] = "tab"
         else:
-            BINDS[cmd] = api.escape(bind)
+            pass
