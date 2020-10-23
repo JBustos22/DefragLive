@@ -2,9 +2,9 @@
 import os # for importing env vars for the bot to use
 from twitchio.ext import commands
 from dotenv import load_dotenv
-import actions
 import config
 import api
+import time
 
 load_dotenv()
 
@@ -27,16 +27,16 @@ async def event_ready():
 @bot.event
 async def event_message(ctx):
     """Activates for every message"""
-
-    message = ctx.content.lower()
+    author = ctx.author.name
+    message = ctx.content
     # make sure the bot ignores itself and the streamer
     # if ctx.author.name.lower() == os.environ['BOT_NICK'].lower():
     #     return
     print("received message:", message)
     # bot.py, at the bottom of event_message
-    if message.startswith("?"):
+    if message.startswith("?"):  # spectator client customization and controls
         print("command received")
-        message = message.strip('?')
+        message = message.strip('?').lower()
         if ";" in message:
             message = message[:message.index(";")]
         split_msg = message.split(' ')
@@ -68,18 +68,20 @@ async def event_message(ctx):
             api.enter_input(config.get_bind("toggle r_fastsky 0 1"))
         elif cmd == "cv" and "kick" not in message:
             api.exec_command(f"{message}")
-    elif message.startswith(">"):
+
+    elif message.startswith(">"):  # chat bridge
         print("chat message sent")
         message = message.strip('>')
         if ";" in message:
             message = message[:message.index(";")]
-        api.exec_command(f"say !me ^7{ctx.author.name}:^2{message}")
-    elif message.startswith("!"):
+        api.exec_command(f"say !me ^7{author}:^2{message}")
+
+    elif message.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
         print("proxy command received")
         if ";" in message:
             message = message[:message.index(";")]
         api.exec_command(message)
-    return
+    return time.sleep(1)
 
 
 if __name__ == "__main__":
