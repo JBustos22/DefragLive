@@ -15,7 +15,7 @@ def exec_command(cmd):
 
 
 def enter_input(cmd):
-    WINDOW.send(cmd + "{Enter}", raw=False, delay=30, blocking=True, press_duration=30)
+    WINDOW.send(cmd, raw=False, delay=30, blocking=True, press_duration=30)
 
 
 def press_key(x):

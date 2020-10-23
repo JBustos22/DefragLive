@@ -32,10 +32,11 @@ async def event_message(ctx):
     # make sure the bot ignores itself and the streamer
     # if ctx.author.name.lower() == os.environ['BOT_NICK'].lower():
     #     return
-
+    print("received message:", message)
     # bot.py, at the bottom of event_message
-    if message.startswith("!"):
-        message = message.strip('!')
+    if message.startswith("?"):
+        print("command received")
+        message = message.strip('?')
         if ";" in message:
             message = message[:message.index(";")]
         split_msg = message.split(' ')
@@ -46,7 +47,7 @@ async def event_message(ctx):
         elif cmd == "switch":
             api.enter_input(config.get_bind("+attack"))
         elif cmd == "scores":
-            api.hold_key(config.get_bind("+scores"), 2000)
+            api.hold_key(config.get_bind("+scores"), 3500)
         elif cmd == "triggers":
             api.enter_input(config.get_bind("toggle scr_triggers_draw 0 1"))
         elif cmd == "clips":
@@ -63,6 +64,21 @@ async def event_message(ctx):
             api.enter_input(config.get_bind("toggle df_chs1_Info7 0 50"))
         elif cmd == "clean":
             api.enter_input(config.get_bind("toggle cg_draw2D 0 1"))
+        elif cmd == "sky":
+            api.enter_input(config.get_bind("toggle r_fastsky 0 1"))
+        elif cmd == "cv" and "kick" not in message:
+            api.exec_command(f"{message}")
+    elif message.startswith(">"):
+        print("chat message sent")
+        message = message.strip('>')
+        if ";" in message:
+            message = message[:message.index(";")]
+        api.exec_command(f"say !me ^7{ctx.author.name}:^2{message}")
+    elif message.startswith("!"):
+        print("proxy command received")
+        if ";" in message:
+            message = message[:message.index(";")]
+        api.exec_command(message)
     return
 
 
