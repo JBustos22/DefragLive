@@ -19,6 +19,12 @@ def press_key(x):
     keyboard.send(x)
 
 
+def press_key_mult(x, amount, delay=0.03):
+    for _ in range(amount):
+        press_key(x)
+        time.sleep(delay)
+
+
 # duration in seconds
 def hold_key(x, duration):
     keyboard.press(x)

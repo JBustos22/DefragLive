@@ -45,7 +45,10 @@ async def event_message(ctx):
         if cmd == "connect":
             api.exec_command(message)
         elif cmd == "switch":
-            api.press_key(config.get_bind("+attack"))
+            try:
+                api.press_key_mult(config.get_bind("+attack"), int(split_msg[1]) % 10, 0.2)
+            except:
+                api.press_key(config.get_bind("+attack"))
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "triggers":
