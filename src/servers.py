@@ -30,7 +30,12 @@ def scrape_servers_data():
     return servers_data
 
 
-def check_if_valid_ip(ip):
+def check_if_valid_ip(ip: str):
+    """
+    Checks whether or not a given IP is listed on q3df.org/servers
+    :param ip: The IP to validate
+    :return: True or False
+    """
     servers_data = scrape_servers_data()
 
     return len([server for (id, server) in servers_data.items() if ip == server["state"]["ip"]]) > 0
