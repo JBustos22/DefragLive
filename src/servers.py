@@ -26,4 +26,20 @@ def scrape_servers_data():
                 "players_qty": server_players_qty[i]
             }
             servers_data[server_ids[i]] = server_details
+
     return servers_data
+
+
+def get_most_popular_server():
+    """ Returns the IP of the server with the most players, or defrag.rocks if no servers are populated """
+    servers_data = scrape_servers_data()
+
+    max_plyr_qty = 0
+    max_plyr_ip = "defrag.rocks"
+
+    for id, server in servers_data.items():
+        if server["players_qty"] > max_plyr_qty:
+            max_plyr_qty = server["players_qty"]
+            max_plyr_ip = server["state"]["ip"]
+
+    return max_plyr_ip
