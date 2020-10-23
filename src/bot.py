@@ -5,6 +5,8 @@ from dotenv import load_dotenv
 import actions
 import config
 import api
+import subprocess
+import servers
 
 load_dotenv()
 
@@ -87,5 +89,21 @@ async def event_message(ctx):
     return
 
 
+def launch():
+    connect_ip = servers.get_most_popular_server()
+
+    df_parent = os.path.dirname(config.DF_DIR)
+    df_exe_p = os.path.join(df_parent, config.DF_EXE_NAME)
+
+    if not os.path.isfile(df_exe_p):
+        print("Could not find engine, quitting...")
+        sys.exit()
+
+    # Make sure to set proper CWD when using subprocess.Popen from another directory
+    # iDFe will automatically take focus when launching
+    process = subprocess.Popen(args=[df_exe_p, "+connect", connect_ip], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=df_parent)
+
+
 if __name__ == "__main__":
+    launch()
     bot.run()

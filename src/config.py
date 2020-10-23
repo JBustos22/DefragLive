@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 DF_DIR, CFG_NAME = os.environ['DF_DIR'], os.environ['CFG_NAME']
+DF_EXE_NAME = "iDFe.exe"
 DF_WIN_TITLE = b"iDFe"
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 
