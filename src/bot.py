@@ -45,35 +45,40 @@ async def event_message(ctx):
         if cmd == "connect":
             api.exec_command(message)
         elif cmd == "switch":
-            api.enter_input(config.get_bind("+attack"))
+            try:
+                api.press_key_mult(config.get_bind("+attack"), int(split_msg[1]) % 10, 0.2)
+            except:
+                api.press_key(config.get_bind("+attack"))
         elif cmd == "scores":
-            api.hold_key(config.get_bind("+scores"), 3500)
+            api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "triggers":
-            api.enter_input(config.get_bind("toggle scr_triggers_draw 0 1"))
+            api.press_key(config.get_bind("toggle scr_triggers_draw 0 1"))
         elif cmd == "clips":
-            api.enter_input(config.get_bind("toggle scr_clips_draw 0 1"))
+            api.press_key(config.get_bind("toggle scr_clips_draw 0 1"))
         elif cmd == "snaps":
-            api.enter_input(config.get_bind("toggle scr_hud_snap_draw 0 1"))
+            api.press_key(config.get_bind("toggle scr_hud_snap_draw 0 1"))
         elif cmd == "checkpoints":
-            api.enter_input(config.get_bind("toggle df_checkpoints 0 2"))
+            api.press_key(config.get_bind("toggle df_checkpoints 0 2"))
         elif cmd == "nodraw":
-            api.enter_input(config.get_bind("toggle df_mp_NoDrawRadius 100 100000"))
+            api.press_key(config.get_bind("toggle df_mp_NoDrawRadius 100 100000"))
         elif cmd == "angles":
-            api.enter_input(config.get_bind("toggle df_chs1_Info6 0 40"))
+            api.press_key(config.get_bind("toggle df_chs1_Info6 0 40"))
         elif cmd == "obs":
-            api.enter_input(config.get_bind("toggle df_chs1_Info7 0 50"))
+            api.press_key(config.get_bind("toggle df_chs1_Info7 0 50"))
         elif cmd == "clean":
-            api.enter_input(config.get_bind("toggle cg_draw2D 0 1"))
+            api.press_key(config.get_bind("toggle cg_draw2D 0 1"))
         elif cmd == "sky":
-            api.enter_input(config.get_bind("toggle r_fastsky 0 1"))
+            api.press_key(config.get_bind("toggle r_fastsky 0 1"))
         elif cmd == "cv" and "kick" not in message:
             api.exec_command(f"{message}")
+
     elif message.startswith(">"):
         print("chat message sent")
         message = message.strip('>')
         if ";" in message:
             message = message[:message.index(";")]
         api.exec_command(f"say !me ^7{ctx.author.name}:^2{message}")
+
     elif message.startswith("!"):
         print("proxy command received")
         if ";" in message:
