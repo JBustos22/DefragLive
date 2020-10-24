@@ -14,10 +14,21 @@ BINDS = None
 
 def get_bind(cmd):
     global BINDS
-    if BINDS is None:
-        read_cfg()
 
     return BINDS[cmd]
+
+
+def get_bind_fuzzy(rx, raw=False):
+    global BINDS
+
+    if not raw:
+        rx = "^.+?" + rx + ".+?$"
+
+    for cmd, bind in BINDS.items():
+        if re.search(rx, cmd):
+            return bind
+
+    raise RuntimeError("Could not find bind for " + rx)
 
 
 def read_cfg():
