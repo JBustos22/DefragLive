@@ -1,11 +1,9 @@
 import re
 import os
-import api
-from dotenv import load_dotenv
+from env import environ
 
-load_dotenv()
-DF_DIR, CFG_NAME = os.environ['DF_DIR'], os.environ['CFG_NAME']
-DF_WIN_TITLE = b"iDFe"
+DF_DIR = environ['DF_DIR'] if 'DF_DIR' in environ and environ['DF_DIR'] != "" else input('Full path to your defrag folder: ')
+CFG_NAME = environ['CFG_NAME']
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 
 BINDS = None
