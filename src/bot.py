@@ -91,9 +91,9 @@ async def event_message(ctx):
             api.press_key(config.get_bind("toggle r_fastsky 0 1"))
         elif cmd == "vote":
             api.press_key(config.get_bind(f"vote {args[0]}"))
-        elif cmd == "drawspeedinfo":
+        elif cmd == "speedinfo":
             api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
-        elif cmd == "drawspeedorig":
+        elif cmd == "speedorig":
             api.press_key(config.get_bind("toggle df_drawSpeed 0 1"))
         elif cmd == "huds":
             api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
