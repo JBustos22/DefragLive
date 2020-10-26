@@ -86,7 +86,7 @@ async def event_message(ctx):
         elif cmd == "obs":
             api.press_key(config.get_bind("toggle df_chs1_Info7 0 50"))
         elif cmd == "clean":
-            api.press_key(config.get_bind("toggle cg_draw2D 0 1;toggle mdd_hud 0 1"))
+            api.press_key(config.get_bind("toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1"))
         elif cmd == "sky":
             api.press_key(config.get_bind("toggle r_fastsky 0 1"))
         elif cmd == "vote":
@@ -95,6 +95,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
         elif cmd == "drawspeedorig":
             api.press_key(config.get_bind("toggle df_drawSpeed 0 1"))
+        elif cmd == "huds":
+            api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
 
         # Currently disabled. Possibly useful for the future:
 
