@@ -16,6 +16,7 @@ def enter_input(cmd):
 
 
 def press_key(x):
+    print("pressing key: ", x)
     keyboard.send(x)
 
 
