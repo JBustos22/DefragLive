@@ -29,19 +29,20 @@ async def event_ready():
 @bot.event
 async def event_message(ctx):
     """Activates for every message"""
-    debounce = 2
+    debounce = 1  # interval between consecutive commands and messages
     author = ctx.author.name
     message = ctx.content
     # make sure the bot ignores itself and the streamer
     if ctx.author.name.lower() == environ['BOT_NICK'].lower():
         return
 
+    if ";" in message:  # prevent q3 command injections
+        message = message[:message.index(";")]
+
     # bot.py, at the bottom of event_message
     if message.startswith("?"):  # spectator client customization and controls
         print("Command received")
         message = message.strip('?').lower()
-        if ";" in message:
-            message = message[:message.index(";")]
         split_msg = message.split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
@@ -75,13 +76,7 @@ async def event_message(ctx):
         elif cmd == "clips":
             api.press_key(config.get_bind("toggle scr_clips_draw 0 1"))
         elif cmd == "snaps":
-            api.press_key(config.get_bind("toggle scr_hud_snap_draw 0 1"))
-        elif cmd == "cgaz":
-            mode = args[0] if len(args) > 0 and 0 < int(args[0]) <= 15 else "toggle"
-            if mode == "toggle":
-                api.press_key(config.get_bind("toggle df_hud_cgaz 0 13"))
-            else:
-                api.exec_command(f"df_hud_cgaz {mode}")
+            api.press_key(config.get_bind("toggle mdd_snap 0 3"))
         elif cmd == "checkpoints":
             api.press_key(config.get_bind("toggle df_checkpoints 0 2"))
         elif cmd == "nodraw":
@@ -91,25 +86,32 @@ async def event_message(ctx):
         elif cmd == "obs":
             api.press_key(config.get_bind("toggle df_chs1_Info7 0 50"))
         elif cmd == "clean":
-            api.press_key(config.get_bind("toggle cg_draw2D 0 1"))
+            api.press_key(config.get_bind("toggle cg_draw2D 0 1;toggle mdd_hud 0 1"))
         elif cmd == "sky":
             api.press_key(config.get_bind("toggle r_fastsky 0 1"))
-        # elif cmd == "cv" and "kick" not in message:
-        #     api.exec_command(f"{message}")
         elif cmd == "vote":
             api.press_key(config.get_bind(f"vote {args[0]}"))
-        elif cmd == "help":
-            help_message = "Client Controls (?command): [start (if on menu), connect <ip>, next <#>(opt), prev <#>(opt), scores, triggers," \
-                           " clips, snaps, checkpoints, nodraw, angles, obs, clean, sky, vote <yes/no>, cgaz <1-15>(opt)]" \
-                           " ||| Chat in DF: [> your message]" \
-                           " ||| mDd Commands: [All commands available through mDd servers (!top, !rank, etc.)]"
-            await ctx.channel.send(help_message)
+        elif cmd == "drawspeedinfo":
+            api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
+        elif cmd == "drawspeedorig":
+            api.press_key(config.get_bind("toggle df_drawSpeed 0 1"))
+
+        # Currently disabled. Possibly useful for the future:
+
+        # elif cmd == "cgaz":
+        #     mode = args[0] if len(args) > 0 and 0 < int(args[0]) <= 15 else "toggle"
+        #     if mode == "toggle":
+        #         api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
+        #     else:
+        #         api.exec_command(f"df_hud_cgaz {mode}")
+
+        # elif cmd == "cv" and "kick" not in message:
+        #     api.exec_command(f"{message}")
+
         time.sleep(debounce)
 
-    elif message.startswith(">"):  # chat bridge
-        message = message.strip('>')
-        if ";" in message:
-            message = message[:message.index(";")]
+    elif message.startswith(">") or message.startswith("<"):  # chat bridge
+        message = message.strip('>').strip('<')
         author_color_char = author[0]
         api.exec_command(f"say !me ^{author_color_char}{author}^7: ^2{message}")
         print("Chat message sent")
@@ -117,10 +119,9 @@ async def event_message(ctx):
 
     elif message.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
         print("proxy command received")
-        if ";" in message:
-            message = message[:message.index(";")]
         api.exec_command(message)
         time.sleep(debounce)
+
     return
 
 
