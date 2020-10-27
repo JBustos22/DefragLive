@@ -3,7 +3,7 @@ import os
 from env import environ
 
 DF_EXE_NAME = input('Name of your engine executable (Press enter to skip this step): ')
-DF_DIR = environ['DF_DIR'] if 'DF_DIR' in environ and environ['DF_DIR'] != "" else input('Full path to your defrag folder: ')
+DF_DIR = environ['DF_DIR'] if 'DF_DIR' in environ and environ['DF_DIR'] != "" else os.path.dirname(os.path.realpath(__file__))
 CFG_NAME = environ['CFG_NAME']
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 
