@@ -78,9 +78,9 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("scr_clips_draw"))
         elif cmd == "snaps":
             api.press_key(config.get_bind_fuzzy("scr_hud_snap_draw"))
-            api.press_key(config.get_bind("toggle mdd_snap 0 3"))
+            api.press_key(config.get_bind_fuzzy("mdd_snap"))
         elif cmd == "cgaz":
-            api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
+            api.press_key(config.get_bind_fuzzy("mdd_cgaz"))
         elif cmd == "checkpoints":
             api.press_key(config.get_bind_fuzzy("df_checkpoints"))
         elif cmd == "nodraw":
@@ -93,19 +93,14 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("cg_draw2D"))
         elif cmd == "sky":
             api.press_key(config.get_bind_fuzzy("r_fastsky"))
-        elif cmd == "cv" and "kick" not in message:
-            api.exec_command(f"{message}")
-            api.press_key(config.get_bind("toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1"))
-        elif cmd == "sky":
-            api.press_key(config.get_bind("toggle r_fastsky 0 1"))
         elif cmd == "vote":
             api.press_key(config.get_bind(f"vote {args[0]}"))
         elif cmd == "speedinfo":
             api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
         elif cmd == "speedorig":
-            api.press_key(config.get_bind("toggle df_drawSpeed 0 1"))
+            api.press_key(config.get_bind_fuzzy("df_drawSpeed"))
         elif cmd == "huds":
-            api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
+            api.press_key(config.get_bind_fuzzy("mdd_hud"))
 
         # Currently disabled. Possibly useful for the future:
 
