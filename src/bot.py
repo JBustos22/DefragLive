@@ -52,7 +52,7 @@ async def event_message(ctx):
 
         if cmd == "connect":
             api.exec_command(message)
-        elif cmd == "start":
+        elif cmd == "restart":
             connect_ip = servers.get_most_popular_server()
             api.press_key_mult("esc", 2)
             api.press_key("enter")
