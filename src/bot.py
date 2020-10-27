@@ -53,15 +53,13 @@ async def event_message(ctx):
         if cmd == "connect":
             api.exec_command(message)
         elif cmd == "start":
+            connect_ip = servers.get_most_popular_server()
             api.press_key_mult("esc", 2)
-            api.press_key_mult("down", 4)
             api.press_key("enter")
-            time.sleep(5)
-            api.press_key("space")
-            api.press_key("up")
-            api.press_key_mult("down", 15, 0.01)
-            api.press_key_mult("tab", 6)
+            api.press_key_mult("tab", 10)
             api.press_key("enter")
+            time.sleep(1)
+            api.exec_command(f"connect {connect_ip}")
         elif cmd == "next":
             try:
                 api.press_key_mult(config.get_bind("+attack"), int(split_msg[1]) % 10, 0.2)
@@ -150,8 +148,8 @@ def launch():
     df_exe_p = os.path.join(df_parent, config.DF_EXE_NAME)
 
     if not os.path.isfile(df_exe_p):
-        print("Could not find engine, quitting...")
-        sys.exit()
+        print("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
+        return
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
     # iDFe will automatically take focus when launching
