@@ -77,6 +77,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind("toggle scr_clips_draw 0 1"))
         elif cmd == "snaps":
             api.press_key(config.get_bind("toggle mdd_snap 0 3"))
+        elif cmd == "cgaz":
+            api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
         elif cmd == "checkpoints":
             api.press_key(config.get_bind("toggle df_checkpoints 0 2"))
         elif cmd == "nodraw":
@@ -113,9 +115,14 @@ async def event_message(ctx):
         time.sleep(debounce)
 
     elif message.startswith(">") or message.startswith("<"):  # chat bridge
-        message = message.strip('>').strip('<')
-        author_color_char = author[0]
-        api.exec_command(f"say !me ^{author_color_char}{author}^7: ^2{message}")
+        if author == 'Nightbot':  # ignore twitch Nightbot's name
+            author = ''
+            author_color_char = 0
+        else:
+            author += ' ^7> '
+            author_color_char = author[0]
+        message = message.lstrip('>').lstrip('<')
+        api.exec_command(f"say ^{author_color_char}{author} ^2{message}")
         print("Chat message sent")
         time.sleep(debounce)
 
@@ -125,7 +132,6 @@ async def event_message(ctx):
         time.sleep(debounce)
 
     return
-
 
 if __name__ == "__main__":
     bot.run()
