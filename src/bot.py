@@ -3,8 +3,11 @@ import os # for importing env vars for the bot to use
 from twitchio.ext import commands
 import config
 import api
+import subprocess
+import servers
 import time
 from env import environ
+import sys
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
@@ -50,15 +53,13 @@ async def event_message(ctx):
         if cmd == "connect":
             api.exec_command(message)
         elif cmd == "start":
+            connect_ip = servers.get_most_popular_server()
             api.press_key_mult("esc", 2)
-            api.press_key_mult("down", 4)
             api.press_key("enter")
-            time.sleep(5)
-            api.press_key("space")
-            api.press_key("up")
-            api.press_key_mult("down", 15, 0.01)
-            api.press_key_mult("tab", 6)
+            api.press_key_mult("tab", 10)
             api.press_key("enter")
+            time.sleep(1)
+            api.exec_command(f"connect {connect_ip}")
         elif cmd == "next":
             try:
                 api.press_key_mult(config.get_bind("+attack"), int(split_msg[1]) % 10, 0.2)
@@ -72,33 +73,34 @@ async def event_message(ctx):
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "triggers":
-            api.press_key(config.get_bind("toggle scr_triggers_draw 0 1"))
+            api.press_key(config.get_bind_fuzzy("scr_triggers_draw"))
         elif cmd == "clips":
-            api.press_key(config.get_bind("toggle scr_clips_draw 0 1"))
+            api.press_key(config.get_bind_fuzzy("scr_clips_draw"))
         elif cmd == "snaps":
-            api.press_key(config.get_bind("toggle mdd_snap 0 3"))
+            api.press_key(config.get_bind_fuzzy("scr_hud_snap_draw"))
+            api.press_key(config.get_bind_fuzzy("mdd_snap"))
         elif cmd == "cgaz":
-            api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
+            api.press_key(config.get_bind_fuzzy("mdd_cgaz"))
         elif cmd == "checkpoints":
-            api.press_key(config.get_bind("toggle df_checkpoints 0 2"))
+            api.press_key(config.get_bind_fuzzy("df_checkpoints"))
         elif cmd == "nodraw":
-            api.press_key(config.get_bind("toggle df_mp_NoDrawRadius 100 100000"))
+            api.press_key(config.get_bind_fuzzy("df_mp_NoDrawRadius"))
         elif cmd == "angles":
             api.press_key(config.get_bind("toggle df_chs1_Info6 0 40"))
         elif cmd == "obs":
             api.press_key(config.get_bind("toggle df_chs1_Info7 0 50"))
         elif cmd == "clean":
-            api.press_key(config.get_bind("toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1"))
+            api.press_key(config.get_bind_fuzzy("cg_draw2D"))
         elif cmd == "sky":
-            api.press_key(config.get_bind("toggle r_fastsky 0 1"))
+            api.press_key(config.get_bind_fuzzy("r_fastsky"))
         elif cmd == "vote":
             api.press_key(config.get_bind(f"vote {args[0]}"))
         elif cmd == "speedinfo":
             api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
         elif cmd == "speedorig":
-            api.press_key(config.get_bind("toggle df_drawSpeed 0 1"))
+            api.press_key(config.get_bind_fuzzy("df_drawSpeed"))
         elif cmd == "huds":
-            api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
+            api.press_key(config.get_bind_fuzzy("mdd_hud"))
 
         # Currently disabled. Possibly useful for the future:
 
@@ -133,5 +135,23 @@ async def event_message(ctx):
 
     return
 
+
+def launch():
+    connect_ip = servers.get_most_popular_server()
+
+    df_parent = os.path.dirname(config.DF_DIR)
+    df_exe_p = os.path.join(df_parent, config.DF_EXE_NAME)
+
+    if not os.path.isfile(df_exe_p):
+        print("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
+        return
+
+    # Make sure to set proper CWD when using subprocess.Popen from another directory
+    # iDFe will automatically take focus when launching
+    process = subprocess.Popen(args=[df_exe_p, "+connect", connect_ip], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=df_parent)
+
+
 if __name__ == "__main__":
+    config.read_cfg()
+    launch()
     bot.run()

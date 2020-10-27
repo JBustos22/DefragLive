@@ -26,4 +26,31 @@ def scrape_servers_data():
                 "players_qty": server_players_qty[i]
             }
             servers_data[server_ids[i]] = server_details
+
     return servers_data
+
+
+def check_if_valid_ip(ip: str):
+    """
+    Checks whether or not a given IP is listed on q3df.org/servers
+    :param ip: The IP to validate
+    :return: True or False
+    """
+    servers_data = scrape_servers_data()
+
+    return len([server for (id, server) in servers_data.items() if ip == server["state"]["ip"]]) > 0
+
+
+def get_most_popular_server():
+    """ Returns the IP of the server with the most players, or defrag.rocks if no servers are populated """
+    servers_data = scrape_servers_data()
+
+    max_plyr_qty = 0
+    max_plyr_ip = "defrag.rocks"
+
+    for id, server in servers_data.items():
+        if server["players_qty"] > max_plyr_qty:
+            max_plyr_qty = server["players_qty"]
+            max_plyr_ip = server["state"]["ip"]
+
+    return max_plyr_ip

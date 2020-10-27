@@ -2,6 +2,7 @@ import re
 import os
 from env import environ
 
+DF_EXE_NAME = input('Name of your engine executable (Press enter to skip this step): ')
 DF_DIR = environ['DF_DIR'] if 'DF_DIR' in environ and environ['DF_DIR'] != "" else input('Full path to your defrag folder: ')
 CFG_NAME = environ['CFG_NAME']
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
@@ -11,10 +12,21 @@ BINDS = None
 
 def get_bind(cmd):
     global BINDS
-    if BINDS is None:
-        read_cfg()
 
     return BINDS[cmd]
+
+
+def get_bind_fuzzy(rx, raw=False):
+    global BINDS
+
+    if not raw:
+        rx = "^.+?" + rx + ".+?$"
+
+    for cmd, bind in BINDS.items():
+        if re.search(rx, cmd):
+            return bind
+
+    raise RuntimeError("Could not find bind for " + rx)
 
 
 def read_cfg():
