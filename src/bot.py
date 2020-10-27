@@ -77,7 +77,6 @@ async def event_message(ctx):
         elif cmd == "clips":
             api.press_key(config.get_bind_fuzzy("scr_clips_draw"))
         elif cmd == "snaps":
-            api.press_key(config.get_bind_fuzzy("scr_hud_snap_draw"))
             api.press_key(config.get_bind_fuzzy("mdd_snap"))
         elif cmd == "cgaz":
             api.press_key(config.get_bind_fuzzy("mdd_cgaz"))
@@ -100,7 +99,7 @@ async def event_message(ctx):
         elif cmd == "speedorig":
             api.press_key(config.get_bind_fuzzy("df_drawSpeed"))
         elif cmd == "huds":
-            api.press_key(config.get_bind_fuzzy("mdd_hud"))
+            api.press_key(config.get_bind("toggle mdd_hud 0 1"))
 
         # Currently disabled. Possibly useful for the future:
 
