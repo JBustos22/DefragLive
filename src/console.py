@@ -1,9 +1,7 @@
 import time
 import api as api
 from termcolor import colored
-
-
-#import command functions from another
+import commands
 
 
 def read(file_path, verbose=True):
@@ -15,21 +13,39 @@ def read(file_path, verbose=True):
                 time.sleep(1)
                 log.seek(where)
             elif "serverCommand" in line:
-                process_line(line)
                 if verbose:
                     print(colored(line, 'yellow'))
+                line_data = process_line(line)
+                if bool(line_data):  # check if line is a command TODO: Use some something like bool(line_data.command)
+                    process_command(line_data, "use line_data.command here")
+                else:
+                    ""
+                    print("Not a command")
+                    # something else
 
 
 def process_line(line):
-    # RE stuff, calls command functions go here
-    # this is proof of concept, we should find a way not to have a bunch of if statements
-    if ": ^2?nospec" in line: # switch this to a RE match
+    # TODO: Add formatting logic here. RE stuff should go here. Format into a nice dictionary like this
+
+    # formatting...
+    # line_data = {"type": line_type, "command": command, "author": author, "content": content, ...}
+    # return line_data
+    return line
+
+
+def process_command(line_data, command):
+    # TODO: Should find a way not to have a bunch of if statements
+    # TODO: Use command functions from command.py to process for each situation
+
+    # Proof of concept code:
+    # TODO: Change conditionals to use command param, etc.
+    if ": ^2?nospec" in line_data: # switch this to a RE match
         # no spec logic or function with logic here
         api.exec_command(f"say Nospec command received.")
-    elif ": ^2?info" in line:
+    elif ": ^2?info" in line_data:
         info_string = "This is a 24/7 livestream: https://www.twitch.tv/defraglive. Contact: defragtv@gmail.com. " \
                       "Use ?help for all the available commands"
         api.exec_command(f"say {info_string}")
-    elif ": ^2?help" in line:
+    elif ": ^2?help" in line_data:
         help_string = "Current commands are ?nospec, ?info, and ?help"
         api.exec_command(f"say {help_string}")
