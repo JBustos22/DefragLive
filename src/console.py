@@ -3,6 +3,8 @@ import api as api
 import config
 from termcolor import colored
 
+#import command functions from another
+
 
 def read(file_path, verbose=True):
     with open(file_path, 'r') as log:
@@ -19,9 +21,6 @@ def read(file_path, verbose=True):
 
 
 def process_line(line):
-    # RE stuff, commands, other functions go here
-    if "?nospec" in line:
-        api.exec_command(f"say Nospec activated.")
-
-
-#More functions
+    # RE stuff, calls command functions go here
+    if "?nospec" in line: # switch this to a RE match
+        api.exec_command(f"say Nospec activated!")
