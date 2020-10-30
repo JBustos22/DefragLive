@@ -6,8 +6,9 @@ import api
 import subprocess
 import servers
 import time
+import console
 from env import environ
-import sys
+import threading
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
@@ -116,7 +117,7 @@ async def event_message(ctx):
         time.sleep(debounce)
 
     elif message.startswith(">") or message.startswith("<"):  # chat bridge
-        if author == 'Nightbot':  # ignore twitch Nightbot's name
+        if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
             author = ''
             author_color_char = 0
         else:
@@ -153,4 +154,7 @@ def launch():
 if __name__ == "__main__":
     config.read_cfg()
     launch()
+    logfile_path = config.DF_DIR + '\\qconsole.log'
+    con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
+    con_process.start()
     bot.run()
