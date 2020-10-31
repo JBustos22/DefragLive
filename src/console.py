@@ -13,6 +13,12 @@ import dfcommands as cmd
 import traceback
 import re
 
+import api
+import config
+
+LOG = []
+LOG_PARSED = []
+
 
 def read(file_path: str):
     """
@@ -20,6 +26,9 @@ def read(file_path: str):
     :param file_path: Full file path to the qconsole.log file
     :return: None
     """
+
+    global LOG
+    global LOG_PARSED
 
     while not os.path.isfile(file_path):
         time.sleep(1)
@@ -31,8 +40,13 @@ def read(file_path: str):
             if not line:
                 time.sleep(1)
                 log.seek(where)
-            elif "serverCommand" in line:
+            else:
+                LOG.append(line)
+            if "serverCommand" in line:
                 line_data = process_line(line)
+
+                LOG_PARSED.append(line_data)
+
                 if line_data["command"] is not None:
                     command = line_data["command"]
                     handle_command = getattr(cmd, f"handle_{command}")
@@ -104,3 +118,154 @@ def process_line(line):
 
     print(colored(line_data, "yellow"))
     return line_data
+
+
+def wait(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0.5):
+    """
+    Waits for a certain message to be logged
+    :param start_r: The message regex that defines the start of the waiting period
+    :param start_fuzzy: Whether or not the start regex describes the entire line, or just part of a line
+    :param end_r: The message regex that defines the end of the waiting period
+    :param end_fuzzy: Whether or not the end regex describes the entire line, or just part of a line
+    :param delay: How long to wait inbetween checking for the end message
+    :return: None
+    """
+
+    global LOG
+
+    print("WAIT", start_r if start_r != "" else "*", end_r if end_r != "" else "*")
+
+    length = len(LOG)
+
+    if end_fuzzy:
+        end_r = "^.*" + end_r + ".*$"
+
+    if start_r != "":
+        if start_fuzzy:
+            start_r = "^.*" + start_r + ".*$"
+
+        # Check if there is already a slice to investigate
+        # Iterate back-to-front over LOG until we find start_r
+        # Then, check all latter elements in LOG if any exist
+        for i in range(length - 1, -1, -1):
+            if re.match(start_r, LOG[i]) and i < length - 1:
+                # There is an initial slice to check
+                if len([line for line in LOG[i + 1 : ] if re.match(end_r, line)]) > 0:
+                    # The initial slice contains end_r
+                    return
+
+                # We have found the latest occurance of start_r, stop searching
+                break
+
+    # Loop and check for new slices, then check those when they become available
+    while True:
+        length_new = len(LOG)
+
+        if length_new > length:
+            # A new slice has appeared
+            slice = LOG[length : length_new]
+            length = length_new
+
+            if len([line for line in slice if re.match(end_r, line)]) > 0:
+                return
+
+        time.sleep(delay)
+
+
+def info_players():
+    api.press_key(config.get_bind_fuzzy("clear"))
+    api.exec_command("info players")
+    wait(end_r="Players Information")
+    api.press_key(config.get_bind_fuzzy("condump"))
+    wait(start_r="Players Information", end_r="Dumped console text to ")
+
+    with open(config.DUMP_P, "r") as dump_f:
+        lines = dump_f.readlines()
+        print("INFO PLAYERS LINES", lines)
+
+    separator_r = r"^[0-9:]*[\s]*-+$"
+    separators = [x for x in range(len(lines)) if re.match(separator_r, lines[x])]
+
+    data = lines[separators[-2] + 1 : separators[-1]]
+
+    players = []
+
+    for line in data:
+        parse_r = r"^[0-9:]*\s*(\d+)\s+\|\s+(.+?)\s+(.*)$"
+
+        try:
+            match = re.match(parse_r, line)
+
+            player_id = match.group(1)
+            player_team = match.group(2)
+            player_name = match.group(3)
+
+            players.append({"id" : player_id, "team" : player_team, "name" : player_name})
+        except:
+            # Probably some other line mixed in
+            continue
+
+    print(players)
+
+    return players
+
+def server_status():
+    api.press_key(config.get_bind_fuzzy("clear"))
+    api.exec_command("serverstatus")
+    wait(end_r="Server settings")
+    api.press_key(config.get_bind_fuzzy("condump"))
+    wait(start_r="Server settings", end_r="Dumped console text to ")
+
+    with open(config.DUMP_P, "r") as dump_f:
+        lines = dump_f.readlines()
+        print("SERVERSTATUS LINES", lines)
+
+    start1_r = "^[0-9:]*\s*Server settings:$"
+    start1 = [x for x in range(len(lines)) if re.match(start1_r, lines[x])][0] + 1
+
+    start2_r = "^[0-9:]*\s*Players:$"
+    start2 = [x for x in range(len(lines)) if re.match(start2_r, lines[x])][0] + 1
+
+    end_r = "^[0-9:]*\s*Dumped console text to .*$"
+    end = [x for x in range(len(lines)) if re.match(end_r, lines[x])][0]
+
+    server_settings_data = lines[start1 : start2 - 1]
+    parse_r = "^[0-9:]*\s*([^\s]+)\s+([^\s]+)$"
+
+    server_settings = {}
+
+    for line in server_settings_data:
+        try:
+            match = re.match(parse_r, line)
+
+            key = match.group(1)
+            value = match.group(2)
+
+            server_settings[key] = value
+        except:
+            # Probably some other line mixed in
+            pass
+
+    players_data = lines[start2 + 1 : end] # Skip table header
+    parse_r = "^[0-9:]*\s*(\d+)\s*(\d+)\s*(\d+)\s*\"(.+)\"$"
+
+    players = []
+
+    for line in players_data:
+        try:
+            match = re.match(parse_r, line)
+
+            num = match.group(1)
+            score = match.group(2)
+            ping = match.group(3)
+            name = match.group(4)
+
+            player = {"num" : num, "score" : score, "ping" : ping, "name" : name}
+
+            players.append(player)
+        except:
+            pass
+
+    print(server_settings, players)
+
+    return (server_settings, players)
