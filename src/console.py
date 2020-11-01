@@ -120,7 +120,7 @@ def process_line(line):
     return line_data
 
 
-def wait(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0.5):
+def wait_for_log(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0.5):
     """
     Waits for a certain message to be logged
     :param start_r: The message regex that defines the start of the waiting period
@@ -173,15 +173,11 @@ def wait(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0.5):
 
 
 def info_players():
-    api.press_key(config.get_bind_fuzzy("clear"))
-    api.exec_command("info players")
-    wait(end_r="Players Information")
-    api.press_key(config.get_bind_fuzzy("condump"))
-    wait(start_r="Players Information", end_r="Dumped console text to ")
+    api.press_key(config.get_bind_fuzzy("info players"))
+    wait_for_log(end_r="^[0-9:]*[\s]*Dumped console text to .*$", end_fuzzy=False)
 
     with open(config.DUMP_P, "r") as dump_f:
         lines = dump_f.readlines()
-        print("INFO PLAYERS LINES", lines)
 
     separator_r = r"^[0-9:]*[\s]*-+$"
     separators = [x for x in range(len(lines)) if re.match(separator_r, lines[x])]
@@ -210,15 +206,11 @@ def info_players():
     return players
 
 def server_status():
-    api.press_key(config.get_bind_fuzzy("clear"))
-    api.exec_command("serverstatus")
-    wait(end_r="Server settings")
-    api.press_key(config.get_bind_fuzzy("condump"))
-    wait(start_r="Server settings", end_r="Dumped console text to ")
+    api.press_key(config.get_bind_fuzzy("serverstatus"))
+    wait_for_log(end_r="^[0-9:]*[\s]*Dumped console text to .*$", end_fuzzy=False)
 
     with open(config.DUMP_P, "r") as dump_f:
         lines = dump_f.readlines()
-        print("SERVERSTATUS LINES", lines)
 
     start1_r = "^[0-9:]*\s*Server settings:$"
     start1 = [x for x in range(len(lines)) if re.match(start1_r, lines[x])][0] + 1
