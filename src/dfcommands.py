@@ -16,20 +16,17 @@ def scan_for_command(message):
     return None
 
 
-"""
-The following are all the handler functions. They each take in line_data and return None
-"""
-
+# The following are all the handler functions. They each take in line_data and return None
 
 def handle_help(line_data):
-    reply_string = "Current commands are ?nospec, ?info, and ?help, and ?howmany"
+    reply_string = "Current commands are ?nospec, ?info, ?help, and ?howmany"
     api.exec_command(f"say {reply_string}")
     return None
 
 
 def handle_nospec(line_data):
     # le extreme logic
-    api.exec_command(f"Coming soon.")
+    api.exec_command(f"say Coming soon.")
     return None
 
 

@@ -205,6 +205,7 @@ def info_players():
 
     return players
 
+
 def server_status():
     api.press_key(config.get_bind_fuzzy("serverstatus"))
     wait_for_log(end_r="^[0-9:]*[\s]*Dumped console text to .*$", end_fuzzy=False)

@@ -7,6 +7,7 @@ import subprocess
 import servers
 import time
 import console
+import serverstate
 from env import environ
 import threading
 
@@ -157,4 +158,7 @@ if __name__ == "__main__":
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
+    # sv_state_process = threading.Thread(target=serverstate.initizalize, args=(logfile_path,), daemon=True)
+    # sv_state_process.start()
+    # sv_state = serverstate.Server('defrag.rocks')
     bot.run()
