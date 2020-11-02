@@ -6,6 +6,8 @@ DF_EXE_NAME = input('Name of your engine executable (Press enter to skip this st
 DF_DIR = environ['DF_DIR'] if 'DF_DIR' in environ and environ['DF_DIR'] != "" else os.path.dirname(os.path.realpath(__file__))
 CFG_NAME = environ['CFG_NAME']
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
+DUMP_NAME = "condump.txt"
+DUMP_P = os.path.join(DF_DIR, DUMP_NAME)
 
 BINDS = None
 
@@ -20,7 +22,7 @@ def get_bind_fuzzy(rx, raw=False):
     global BINDS
 
     if not raw:
-        rx = "^.+?" + rx + ".+?$"
+        rx = "^.*" + rx + ".*$"
 
     for cmd, bind in BINDS.items():
         if re.search(rx, cmd):
