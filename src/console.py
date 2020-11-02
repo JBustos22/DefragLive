@@ -76,7 +76,7 @@ def process_line(line):
             chat_announce_r = r"^chat\s*\"(.*?)\".*?$"
             match = re.match(chat_announce_r, command)
 
-            chat_announcement = chat_announce_r.group(1)
+            chat_announcement = match.group(1)
 
             line_data["type"] = "ANNOUNCE"
             line_data["author"] = None
