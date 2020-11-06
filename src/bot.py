@@ -156,22 +156,35 @@ def launch():
 from flask import Flask, jsonify, request
 app = Flask(__name__)
 
+
 @app.route('/console')
 def parsed_console_log():
     output = console.LOG_PARSED[::-1]
     return jsonify(output)
 
+
 @app.route('/console/raw')
 def raw_console_log():
-    output = console.LOG[::-1]
+    output = console.CONSOLE_DISPLAY[::-1]
     return jsonify(output)
 
-@app.route('/console/send')
+
+@app.route('/console/send', methods=['POST'])
 def send_message():
-    author = request.args.get("author", None)
-    message = request.args.get("message", None)
-    api.exec_command(f"say {author} ^7> ^2{message}")
-    return f"Sent {author} ^7> ^2{message}"
+    msg_json = request.get_json()
+    author = msg_json.get("author", None)
+    message = msg_json.get("message", None)
+    command = msg_json.get("command", None)
+    if command is not None and command.startswith("!"):
+        if ";" in command:  # prevent q3 command injections
+            command = command[:command.index(";")]
+        api.exec_command(command)
+        return f"Sent mdd command {command}"
+    else:
+        if ";" in message:  # prevent q3 command injections
+            message = message[:message.index(";")]
+        api.exec_command(f"say {author} ^7> ^2{message}")
+        return f"Sent {author} ^7> ^2{message}"
 
 
 if __name__ == "__main__":

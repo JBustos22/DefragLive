@@ -18,6 +18,7 @@ import config
 
 LOG = []
 LOG_PARSED = []
+CONSOLE_DISPLAY = []
 
 
 def read(file_path: str):
@@ -48,13 +49,13 @@ def read(file_path: str):
 
                 LOG_PARSED.append(line_data)
 
-                if line_data["command"] is not None:
+                if line_data.pop("command") is not None:
                     command = line_data["command"]
                     handle_command = getattr(cmd, f"handle_{command}")
                     handle_command(line_data)
 
                 if line_data["type"] in ["PRINT", "SAY"]:
-                    console_data = {}
+                    CONSOLE_DISPLAY.append(line_data)
 
 
 def process_line(line):
