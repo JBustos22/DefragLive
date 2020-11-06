@@ -29,6 +29,7 @@ def read(file_path: str):
 
     global LOG
     global LOG_PARSED
+    global CONSOLE_DISPLAY
 
     while not os.path.isfile(file_path):
         time.sleep(1)
@@ -51,6 +52,9 @@ def read(file_path: str):
                     command = line_data["command"]
                     handle_command = getattr(cmd, f"handle_{command}")
                     handle_command(line_data)
+
+                if line_data["type"] in ["PRINT", "SAY"]:
+                    console_data = {}
 
 
 def process_line(line):

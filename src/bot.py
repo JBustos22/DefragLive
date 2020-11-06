@@ -151,6 +151,28 @@ def launch():
     # iDFe will automatically take focus when launching
     process = subprocess.Popen(args=[df_exe_p, "+connect", connect_ip], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=df_parent)
 
+# Flask api for the twitch extensions
+
+from flask import Flask, jsonify, request
+app = Flask(__name__)
+
+@app.route('/console')
+def parsed_console_log():
+    output = console.LOG_PARSED[::-1]
+    return jsonify(output)
+
+@app.route('/console/raw')
+def raw_console_log():
+    output = console.LOG[::-1]
+    return jsonify(output)
+
+@app.route('/console/send')
+def send_message():
+    author = request.args.get("author", None)
+    message = request.args.get("message", None)
+    api.exec_command(f"say {author} ^7> ^2{message}")
+    return f"Sent {author} ^7> ^2{message}"
+
 
 if __name__ == "__main__":
     config.read_cfg()
@@ -158,6 +180,8 @@ if __name__ == "__main__":
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
+    flask_process = threading.Thread(target=app.run, daemon=True)
+    flask_process.start()
     # sv_state_process = threading.Thread(target=serverstate.initizalize, args=(logfile_path,), daemon=True)
     # sv_state_process.start()
     # sv_state = serverstate.Server('defrag.rocks')
