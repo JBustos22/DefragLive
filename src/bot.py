@@ -9,7 +9,6 @@ import time
 import console
 from env import environ
 import threading
-import signal
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
@@ -165,3 +164,4 @@ if __name__ == "__main__":
     api.api_init(df_exe_p)
 
     bot.run()
+    
