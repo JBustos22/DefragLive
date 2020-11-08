@@ -144,17 +144,24 @@ def launch():
 
     if not os.path.isfile(df_exe_p):
         print("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
-        return
+        return None
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
     # iDFe will automatically take focus when launching
     process = subprocess.Popen(args=[df_exe_p, "+connect", connect_ip], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=df_parent)
 
+    return df_exe_p
+
 
 if __name__ == "__main__":
     config.read_cfg()
-    launch()
+    df_exe_p = launch()
+
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
+
+    api.api_init(df_exe_p)
+
     bot.run()
+    
