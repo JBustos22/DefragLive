@@ -2,8 +2,8 @@ import re
 import os
 from env import environ
 
-DF_EXE_NAME = input('Name of your engine executable (Press enter to skip this step): ')
-DF_DIR = environ['DF_DIR'] if 'DF_DIR' in environ and environ['DF_DIR'] != "" else os.path.dirname(os.path.realpath(__file__))
+DF_EXE_P = environ["DF_EXE_P"]
+DF_DIR = environ['DF_DIR']
 CFG_NAME = environ['CFG_NAME']
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 DUMP_NAME = "condump.txt"
@@ -62,11 +62,13 @@ def validate_cfg():
     for (cmd, bind) in BINDS.items():
         if cmd == "toggleconsole":
             continue
+        elif re.match(r"^F\d+$", bind):
+            BINDS[cmd] = "{" + bind + "}"
         elif bind == "ENTER":
-            BINDS[cmd] = "enter"
+            BINDS[cmd] = "{Enter}"
         elif bind == "ESCAPE":
-            BINDS[cmd] = "esc"
+            BINDS[cmd] = "{Esc}"
         elif bind == "TAB":
-            BINDS[cmd] = "tab"
+            BINDS[cmd] = "{Tab}"
         else:
             pass

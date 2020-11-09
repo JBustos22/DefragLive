@@ -163,17 +163,13 @@ async def event_message(ctx):
 def launch():
     connect_ip = servers.get_most_popular_server()
 
-    df_parent = os.path.dirname(config.DF_DIR)
-    df_exe_p = os.path.join(df_parent, config.DF_EXE_NAME)
-
-    if not os.path.isfile(df_exe_p):
+    if not os.path.isfile(config.DF_EXE_P):
         print("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
         return None
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
     # iDFe will automatically take focus when launching
-    process = subprocess.Popen(args=[df_exe_p, "+connect", connect_ip], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=df_parent)
-    return df_exe_p
+    process = subprocess.Popen(args=[config.DF_EXE_P, "+map", "q3ctf1"], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=os.path.dirname(config.DF_EXE_P))
 
 
 # Flask api for the twitch extensions
@@ -214,7 +210,14 @@ def send_message():
 
 if __name__ == "__main__":
     config.read_cfg()
-    df_exe_p = launch()
+
+    while True:
+        try:
+            api.api_init()
+            break
+        except:
+            if input("Your DeFRaG engine is not running. Would you like us to launch it for you? [Y/n]: ") == "Y":
+                launch()
 
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)

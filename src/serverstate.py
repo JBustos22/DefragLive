@@ -32,6 +32,9 @@ class Server:
 def connect(ip):
     global SERVER
 
+    if os.path.isfile(config.SVINFO_REPORT_P):
+        os.remove(config.SVINFO_REPORT_P)
+
     secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
     api.exec_command("seta model " + secret)
 

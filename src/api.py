@@ -8,7 +8,15 @@ from ahk import AHK
 import config
 
 AHK = AHK()
-WINDOW = AHK.find_window(title=b"iDFe")
+WINDOW = None
+
+def api_init():
+    global WINDOW
+
+    WINDOW = AHK.find_window(process=config.DF_EXE_P)
+
+    if WINDOW == None:
+        raise RuntimeError
 
 
 def exec_command(cmd):
@@ -33,4 +41,4 @@ def press_key_mult(x, amount, delay=0.03):
 def hold_key(x, duration):
     print(f"holding {x} for {duration} seconds")
 
-    WINDOW.send(x, press_duration=duration)
+    WINDOW.send(x, blocking=True, press_duration=duration * 1000)
