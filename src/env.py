@@ -4,6 +4,6 @@ environ = {
     "BOT_NICK": "q3dflive",
     "BOT_PREFIX": "?",
     "CFG_NAME": "twitchbot.cfg",
-    "DF_DIR": "C:\\Users\\Jorge\\Desktop\\Defrag\\defrag",
+    "DF_DIR": "",
     "CHANNEL": ""
 }
