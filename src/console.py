@@ -67,7 +67,7 @@ def process_line(line):
     """
     line = line.strip()
 
-    line_data = {"type": "MISC", "command": None, "author": None, "content": line}
+    line_data = {"type": "MISC", "command": None, "author": None, "content": line, "timestamp" : time.time()}
 
     # SERVERCOMMAND
     try:
@@ -112,7 +112,18 @@ def process_line(line):
             line_data["author"] = None
             line_data["content"] = print_message
 
-        for fun in [parse_chat_message, parse_chat_announce, parse_print]:
+        def parse_scores(command):
+            # SCORES
+            scores_r = r"^scores\s+(.*?)$"
+            match = re.match(scores_r, command)
+
+            scores = match.group(1)
+
+            line_data["type"] = "SCORES"
+            line_data["author"] = None
+            line_data["content"] = scores
+
+        for fun in [parse_chat_message, parse_chat_announce, parse_print, parse_scores]:
             try:
                 fun(sv_command)
                 break
@@ -121,8 +132,53 @@ def process_line(line):
     except:
         return line_data
 
-    print(colored(line_data, "yellow"))
+    #print(colored(line_data, "yellow"))
     return line_data
+
+
+def wait_for_log_parsed(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5):
+    global LOG_PARSED
+
+    length = len(LOG_PARSED)
+
+    def check(line, end_type, end_author, end_content, end_content_fuzzy):
+        if end_type and end_type != line["type"]:
+            return False
+
+        if end_author and end_author != line["author"]:
+            return False
+
+        if end_content:
+            if end_content_fuzzy:
+                end_content = "^.*?" + end_content + ".*?$"
+
+            try:
+                re.match(end_content, line["content"])
+            except:
+                return False
+
+        return True
+
+    # Slice log, check lines, etc
+    # Check initial slice
+    slice = [line for line in LOG_PARSED if line["timestamp"] > start_ts]
+
+    for line in slice:
+        if check(line, end_type, end_author, end_content, end_content_fuzzy):
+            return line
+
+    while True:
+        length_new = len(LOG_PARSED)
+
+        if length_new == length:
+            time.sleep(delay)
+            continue
+
+        slice = LOG_PARSED[length : length_new]
+
+        for line in slice:
+            if check(line, end_type, end_author, end_content, end_content_fuzzy):
+                return line
 
 
 def wait_for_log(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0.5):
@@ -133,7 +189,7 @@ def wait_for_log(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0
     :param end_r: The message regex that defines the end of the waiting period
     :param end_fuzzy: Whether or not the end regex describes the entire line, or just part of a line
     :param delay: How long to wait inbetween checking for the end message
-    :return: None
+    :return: The first line to match end_r
     """
 
     global LOG
@@ -155,9 +211,11 @@ def wait_for_log(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0
         for i in range(length - 1, -1, -1):
             if re.match(start_r, LOG[i]) and i < length - 1:
                 # There is an initial slice to check
-                if len([line for line in LOG[i + 1 : ] if re.match(end_r, line)]) > 0:
+                extract = [line for line in LOG[i + 1 : ] if re.match(end_r, line)]
+
+                if len(extract) > 0:
                     # The initial slice contains end_r
-                    return
+                    return extract[0]
 
                 # We have found the latest occurance of start_r, stop searching
                 break
@@ -171,8 +229,10 @@ def wait_for_log(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0
             slice = LOG[length : length_new]
             length = length_new
 
-            if len([line for line in slice if re.match(end_r, line)]) > 0:
-                return
+            extract = [line for line in slice if re.match(end_r, line)]
+
+            if len(extract) > 0:
+                return extract[0]
 
         time.sleep(delay)
 
