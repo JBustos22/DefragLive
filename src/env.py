@@ -6,4 +6,4 @@ environ = {
     "CFG_NAME": "twitchbot.cfg",
     "DF_DIR": "C:\\Users\\Jorge\\Desktop\\Defrag\\defrag",
     "CHANNEL": "q3dflive"
-}
+}    "SVINFO_REPORT_NAME": "svinfo_report.txt",

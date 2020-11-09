@@ -9,6 +9,8 @@ CFG_P = os.path.join(DF_DIR, CFG_NAME)
 DUMP_NAME = "condump.txt"
 DUMP_P = os.path.join(DF_DIR, DUMP_NAME)
 
+SVINFO_REPORT_P = os.path.join(DF_DIR, "system", "reports", environ["SVINFO_REPORT_NAME"])
+
 BINDS = None
 
 
