@@ -21,7 +21,6 @@ bot = commands.Bot(
     initial_channels=[df_channel]
 )
 
-
 @bot.event
 async def event_ready():
     """Called once when the bot goes online."""
@@ -101,6 +100,30 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("df_drawSpeed"))
         elif cmd == "huds":
             api.press_key(config.get_bind("toggle mdd_hud 0 1"))
+        elif cmd == "inputs":
+            api.press_key(config.get_bind_fuzzy("df_chs0_draw"))
+        elif cmd == "n1":
+            api.exec_command(api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!"))
+
+        # Mod commands
+        elif cmd == "brightness":
+            if not ctx.author.is_mod:
+                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command.")
+                return
+            value = args[0]
+            if value.isdigit() and (0 < int(value) <= 5):
+                api.exec_command(f"r_mapoverbrightbits {value};vid_restart")
+            else:
+                await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
+        elif cmd == "picmip":
+            if not ctx.author.is_mod:
+                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command.")
+                return
+            value = args[0]
+            if value.isdigit() and (0 <= int(value) <= 6):
+                api.exec_command(f"r_picmip {value};vid_restart")
+            else:
+                await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
 
         # Currently disabled. Possibly useful for the future:
 
@@ -164,4 +187,3 @@ if __name__ == "__main__":
     api.api_init(df_exe_p)
 
     bot.run()
-    
