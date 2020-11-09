@@ -22,7 +22,7 @@ def get_bind_fuzzy(rx, raw=False):
     global BINDS
 
     if not raw:
-        rx = "^.*" + rx + ".*$"
+        rx = "^.*" + re.escape(rx) + ".*$"
 
     for cmd, bind in BINDS.items():
         if re.search(rx, cmd):
