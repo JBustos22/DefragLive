@@ -8,16 +8,18 @@ Player - stores individual in-depth information about each player. The server ob
 
 import console
 import api
+import re
+import time
 
 
 class Server:
-    def __init__(self, ip=None):
-        self.set_server_status()
+    def __init__(self, server_data, ip=None):
+        self.set_server_status(server_data)
         self.multiplayer = ip is not None
         self.ip = ip
         self.nospec_list = []  # Would contain a list of player objects with no_spec activated
 
-    def set_server_status(self):
+    def set_server_status(self, data):
         """Obtains data from the /serverstatus command and initializes attributes dynamically"""
         server_data, player_list = console.server_status()[:]
         for key in server_data:
@@ -62,3 +64,49 @@ class Player:
     def toggle_nospec(self):
         """Toggle the player's nospec flag. If True, the bot will avoid spectating this player"""
         self.no_spec = not self.no_spec
+
+
+def parse_svinfo_report(lines):
+    info = {}
+    header = None
+
+    header_r = r"^\*\*\* (.*)$"
+    kv_r = r"^(.+?)\s+(.*)$"
+
+    for line in [line for line in lines if line != ""]:
+        # Check if line is a header
+        try:
+            header = re.match(header_r, line).group(1)
+
+            # Create new dictionary for header
+            if header not in info:
+                info[header] = {}
+
+            continue
+        except:
+            pass
+
+        # Don't parse any lines until we have a header
+        if not header:
+            continue
+
+        # Check if line is a key-value pair
+        try:
+            match = re.match(kv_r, line)
+            key = match.group(1)
+            value = match.group(2)
+
+            info[header][key] = value
+        except:
+            pass
+
+    return info
+
+
+def initialize_serverstate(sv_log_path):
+    api.exec_command("varcommand $get_state")
+    while True:
+        with open(sv_log_path, "r") as test_f:
+            lines = test_f.readlines()
+            print(parse_svinfo_report(lines))
+        time.sleep(2)

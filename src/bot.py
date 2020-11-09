@@ -8,6 +8,7 @@ import servers
 import time
 import console
 import serverstate
+from serverstate import initialize_serverstate
 from env import environ
 import threading
 
@@ -221,8 +222,10 @@ if __name__ == "__main__":
     con_process.start()
     flask_process = threading.Thread(target=app.run, daemon=True)
     flask_process.start()
-    # sv_state_process = threading.Thread(target=serverstate.initizalize, args=(logfile_path,), daemon=True)
-    # sv_state_process.start()
+    sv_log_path = config.DF_DIR + '\\system\\reports\\serverstate.txt'
+    sv_state_process = threading.Thread(target=initialize_serverstate, args=(sv_log_path,), daemon=True)
+    time.sleep(10)
+    sv_state_process.start()
     # sv_state = serverstate.Server('defrag.rocks')
 
     api.api_init(df_exe_p)

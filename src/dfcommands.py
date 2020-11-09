@@ -25,7 +25,6 @@ def handle_help(line_data):
 
 
 def handle_nospec(line_data):
-    # le extreme logic
     api.exec_command(f"say Coming soon.")
     return None
 
