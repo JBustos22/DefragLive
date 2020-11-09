@@ -8,7 +8,6 @@ import servers
 import time
 import console
 import serverstate
-from serverstate import initialize_serverstate
 from env import environ
 import threading
 
@@ -53,7 +52,7 @@ async def event_message(ctx):
         args = split_msg[1:] if len(split_msg) > 0 else None
 
         if cmd == "connect":
-            api.exec_command(message)
+            serverstate.connect(args[0])
         elif cmd == "restart":
             connect_ip = servers.get_most_popular_server()
             api.press_key_mult("esc", 2)
@@ -220,14 +219,12 @@ if __name__ == "__main__":
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
-    flask_process = threading.Thread(target=app.run, daemon=True)
-    flask_process.start()
-    sv_log_path = config.DF_DIR + '\\system\\reports\\serverstate.txt'
-    sv_state_process = threading.Thread(target=initialize_serverstate, args=(sv_log_path,), daemon=True)
-    time.sleep(10)
-    sv_state_process.start()
+    #flask_process = threading.Thread(target=app.run, daemon=True)
+    #flask_process.start()
+    #sv_log_path = config.DF_DIR + '\\system\\reports\\serverstate.txt'
+    #sv_state_process = threading.Thread(target=initialize_serverstate, args=(sv_log_path,), daemon=True)
+    #time.sleep(10)
+    #sv_state_process.start()
     # sv_state = serverstate.Server('defrag.rocks')
-
-    api.api_init(df_exe_p)
 
     bot.run()

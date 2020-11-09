@@ -10,60 +10,99 @@ import console
 import api
 import re
 import time
+import random
+import os
+import config
+
+SERVER = None
 
 
 class Server:
-    def __init__(self, server_data, ip=None):
-        self.set_server_status(server_data)
-        self.multiplayer = ip is not None
+    def __init__(self, ip, secret, info, players):
+        self.info = info
+        self.players = players
+        self.secret = secret
+        self.bot_id = [player for player in players if player["model"] == secret][0]["id"]
         self.ip = ip
-        self.nospec_list = []  # Would contain a list of player objects with no_spec activated
 
-    def set_server_status(self, data):
-        """Obtains data from the /serverstatus command and initializes attributes dynamically"""
-        server_data, player_list = console.server_status()[:]
-        for key in server_data:
-            setattr(self, key, server_data[key])  # set all these key-value pairs as attributes
-        self.set_players_info(player_list)
-
-    def set_players_info(self, player_list):  # player_list unused for now. May need if ping information is required
-        """Obtains data from the /info players command and initializes the player objects"""
-        self.players = []
-        player_data = console.info_players()
-        for player_info in player_data:
-            self.players.append(Player(player_info))
-
-    def get_id_by_name(self, name):
-        """Retrieves all the client ids matching a given name."""
-        ids_with_name = []
-        for player in self.players:
-            if player.name == name:
-                ids_with_name.append(player.id)
-        return ids_with_name if len(ids_with_name) > 0 else None
-
-    def get_current_physics(self):
-        """Returns the current physics in human-readable format"""
-        physics = "cpm" if self.df_promode == 1 else "vq3"
-        suffix = f".{self.defrag_mode}" if self.defrag_gametype == '7' else ""  # For fastcaps physics
-        return physics + suffix
+    def __str__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
 
 
-class Player:
-    def __init__(self, player_info, ping=-1):
-        self.name = player_info['name']
-        self.id = player_info['id']
-        self.playing = False if player_info['team'] == 'SPEC' else True
-        self.no_spec = False
-        self.ping = ping
-        self.secret_code = '123'  # use random func
+def connect(ip):
+    global SERVER
 
-    def send_pm(self, msg):
-        """Send a private message in game"""
-        api.exec_command(f"tell {id} {msg}")
+    secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
+    api.exec_command("seta model " + secret)
 
-    def toggle_nospec(self):
-        """Toggle the player's nospec flag. If True, the bot will avoid spectating this player"""
-        self.no_spec = not self.no_spec
+    api.exec_command("model")
+    api.press_key(config.get_bind("+scores;-scores"))
+
+    api.exec_command("connect " + ip)
+
+    while not os.path.isfile(config.SVINFO_REPORT_P):
+        time.sleep(1)
+
+    with open(config.SVINFO_REPORT_P, "r") as svinfo_report_f:
+        lines = svinfo_report_f.readlines()
+        info = parse_svinfo_report(lines)
+
+    api.exec_command("model ranger/default")
+
+    # Parse into objects
+    server_info = info["Server Info"] if "Server Info" in info else []
+    players = []
+
+    for header in info:
+        try:
+            match = re.match(r"^Client Info (\d+?)$", header)
+            id = match.group(1)
+
+            player_obj = info[header]
+            player_obj["id"] = id
+
+            players.append(player_obj)
+        except:
+            continue
+
+    os.remove(config.SVINFO_REPORT_P)
+
+    SERVER = Server(ip, secret, server_info, players)
+
+
+def get_spec_id():
+    global SERVER
+
+    players = get_scores()
+
+    bot_player = [player for player in players if player["id"] == SERVER.bot_id][0]
+
+    return bot_player["spec_id"]
+
+
+def get_scores():
+    ts = time.time()
+
+    api.press_key(config.get_bind_fuzzy("+scores;-scores"))
+
+    line = console.wait_for_log_parsed(start_ts=ts, end_type="SCORES")
+
+    # Parse scores
+    nums = line["content"].split(" ")
+    num_players = int(nums[0])
+    nums = nums[4:]
+
+    players = []
+
+    for i in range(0, num_players * 4, 4):
+        id = nums[i]
+        score = nums[i+1]
+        ping = nums[i+2]
+        spec_id = nums[i+3]
+
+        players.append({"id" : id, "score" : score, "ping" : ping, "spec_id" : spec_id})
+
+    return players
 
 
 def parse_svinfo_report(lines):
@@ -101,12 +140,3 @@ def parse_svinfo_report(lines):
             pass
 
     return info
-
-
-def initialize_serverstate(sv_log_path):
-    api.exec_command("varcommand $get_state")
-    while True:
-        with open(sv_log_path, "r") as test_f:
-            lines = test_f.readlines()
-            print(parse_svinfo_report(lines))
-        time.sleep(2)
