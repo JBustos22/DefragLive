@@ -49,6 +49,7 @@ python-dotenv==0.14.0
 python-engineio==3.13.2
 python-socketio==4.6.0
 pytz==2020.1
+pywinauto==0.6.8
 pywin32-ctypes==0.2.0
 pyzmq==19.0.2
 quakestats==1.4.0
