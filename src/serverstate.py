@@ -49,7 +49,6 @@ def connect(ip):
     console.wait_log(start_ts=ts, end_content="report written to")
 
     # Read report
-    # I DONT KNOW WHATS HAPPENING ANYMORE THIS NEVER WORKS
     with open(config.SVINFO_REPORT_P, "r") as svinfo_report_f:
         lines = svinfo_report_f.readlines()
         info = parse_svinfo_report(lines)
@@ -87,31 +86,28 @@ def connect(ip):
 def switch_spec(fwd=True):
     global SERVER
 
-    #get_svinfo_report()
-    #nospec_ids = [player["id"] for player in SERVER.players if "nospec" in player["n"]]
-
     for _ in range(len(SERVER.players)):
         if fwd:
             api.press_key(config.get_bind("+attack"))
         else:
             api.press_key(config.get_bind("+speed;wait 10;-speed"))
 
-        # I'm done, this will be based on displaynames
-        ts = time.time()
-        secret = ''.join(random.choice('0123456789ABCDEF') for i in range(5))
-        api.exec_command(f"varcommand echo {secret} $chsinfo(118)")
-        line = console.wait_log(start_ts=ts, end_content=f"^{secret}.*?$", end_content_fuzzy=False)["content"]
-
-        print(line)
-
-        r = f"^{secret}\s*?(.*?)$"
-        name = re.match(r, line).group(1)
-
-        print(name)
-
-        break
-
         time.sleep(0.2)
+
+        info = get_svinfo_report()
+
+        spec_dfn = info["Info"]["player"]
+
+        if "nospec" in spec_dfn or "ns" in spec_dfn:
+            print("SKIPPING PLAYER", spec_dfn)
+            continue
+        else:
+            return
+
+    # Reset
+    api.exec_command("team spectator")
+
+
 
 
 def get_spec_id():
@@ -183,7 +179,7 @@ def get_svinfo_report():
     SERVER.server_info = server_info
     SERVER.players = players
 
-    print(SERVER)
+    return info
 
 
 def parse_svinfo_report(lines):
