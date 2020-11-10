@@ -6,6 +6,6 @@ environ = {
     "CFG_NAME": "twitchbot.cfg",
     "DF_DIR": "E:\\GAMES\\DEFRAG TEST\\defrag",
     "DF_EXE_P" : "E:\\GAMES\\DEFRAG TEST\\iDFe.x64.exe",
-    "SVINFO_REPORT_NAME": "svinfo_report.txt",
+    "SVINFO_REPORT_NAME": "serverstate.txt",
     "CHANNEL": "Donaldduck8"
 }

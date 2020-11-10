@@ -18,11 +18,11 @@ SERVER = None
 
 
 class Server:
-    def __init__(self, ip, secret, info, players):
+    def __init__(self, ip, secret, info, players, bot_id):
         self.info = info
         self.players = players
         self.secret = secret
-        self.bot_id = [player for player in players if player["model"] == secret][0]["id"]
+        self.bot_id = bot_id
         self.ip = ip
 
     def __str__(self):
@@ -32,27 +32,32 @@ class Server:
 def connect(ip):
     global SERVER
 
-    if os.path.isfile(config.SVINFO_REPORT_P):
-        os.remove(config.SVINFO_REPORT_P)
-
+    # Set a secret model
     secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
     api.exec_command("seta model " + secret)
 
+    # Make sure the model is set, I hate this
     api.exec_command("model")
     api.press_key(config.get_bind("+scores;-scores"))
 
+    # Keep track of time for proper log parsing
+    ts = time.time()
+
+    # Connect to the server, respawn.cfg will write a svinfo_report that we have to wait for
     api.exec_command("connect " + ip)
 
-    while not os.path.isfile(config.SVINFO_REPORT_P):
-        time.sleep(1)
+    console.wait_log(start_ts=ts, end_content="report written to")
 
+    # Read report
+    # I DONT KNOW WHATS HAPPENING ANYMORE THIS NEVER WORKS
     with open(config.SVINFO_REPORT_P, "r") as svinfo_report_f:
         lines = svinfo_report_f.readlines()
         info = parse_svinfo_report(lines)
 
+    # Reset model to something sensible
     api.exec_command("model ranger/default")
 
-    # Parse into objects
+    # Parse svinfo_report into objects
     server_info = info["Server Info"] if "Server Info" in info else []
     players = []
 
@@ -68,9 +73,45 @@ def connect(ip):
         except:
             continue
 
-    os.remove(config.SVINFO_REPORT_P)
+    print(server_info)
+    print(players)
+    print(secret)
 
-    SERVER = Server(ip, secret, server_info, players)
+    # Find our own ID
+    bot_id = [player for player in players if player["model"] == secret][0]["id"]
+
+    # Create global server object
+    SERVER = Server(ip, secret, server_info, players, bot_id)
+
+
+def switch_spec(fwd=True):
+    global SERVER
+
+    #get_svinfo_report()
+    #nospec_ids = [player["id"] for player in SERVER.players if "nospec" in player["n"]]
+
+    for _ in range(len(SERVER.players)):
+        if fwd:
+            api.press_key(config.get_bind("+attack"))
+        else:
+            api.press_key(config.get_bind("+speed;wait 10;-speed"))
+
+        # I'm done, this will be based on displaynames
+        ts = time.time()
+        secret = ''.join(random.choice('0123456789ABCDEF') for i in range(5))
+        api.exec_command(f"varcommand echo {secret} $chsinfo(118)")
+        line = console.wait_log(start_ts=ts, end_content=f"^{secret}.*?$", end_content_fuzzy=False)["content"]
+
+        print(line)
+
+        r = f"^{secret}\s*?(.*?)$"
+        name = re.match(r, line).group(1)
+
+        print(name)
+
+        break
+
+        time.sleep(0.2)
 
 
 def get_spec_id():
@@ -86,26 +127,63 @@ def get_spec_id():
 def get_scores():
     ts = time.time()
 
+    # This has an internal debounce :) Holy fucking shit
     api.press_key(config.get_bind_fuzzy("+scores;-scores"))
 
-    line = console.wait_for_log_parsed(start_ts=ts, end_type="SCORES")
+    line = console.wait_log(start_ts=ts, end_type="SCORES")
 
-    # Parse scores
-    nums = line["content"].split(" ")
-    num_players = int(nums[0])
-    nums = nums[4:]
+    return parse_scores(line)
+
+
+def parse_scores(line):
+    parts = line.split(" ")
+    num_players = int(parts[0])
 
     players = []
 
+    # Work backwards since the embedded string can contain spaces
     for i in range(0, num_players * 4, 4):
-        id = nums[i]
-        score = nums[i+1]
-        ping = nums[i+2]
-        spec_id = nums[i+3]
+        spec_id = parts[i-1]
+        ping = parts[i-2]
+        score = parts[i-3]
+        id = parts[i-4]
 
         players.append({"id" : id, "score" : score, "ping" : ping, "spec_id" : spec_id})
 
     return players
+
+
+def get_svinfo_report():
+    global SERVER
+
+    ts = time.time()
+    api.press_key(config.get_bind_fuzzy("svinfo_report serverstate.txt"))
+    console.wait_log(start_ts=ts, end_content="report written to")
+
+    with open(config.SVINFO_REPORT_P, "r") as svinfo_report_f:
+        lines = svinfo_report_f.readlines()
+        info = parse_svinfo_report(lines)
+
+        # Parse into objects
+        server_info = info["Server Info"] if "Server Info" in info else []
+        players = []
+
+    for header in info:
+        try:
+            match = re.match(r"^Client Info (\d+?)$", header)
+            id = match.group(1)
+
+            player_obj = info[header]
+            player_obj["id"] = id
+
+            players.append(player_obj)
+        except:
+            continue
+
+    SERVER.server_info = server_info
+    SERVER.players = players
+
+    print(SERVER)
 
 
 def parse_svinfo_report(lines):

@@ -17,8 +17,8 @@ import api
 import config
 
 LOG = []
-LOG_PARSED = []
 CONSOLE_DISPLAY = []
+FILTERS = ["R_AddMD3Surfaces"]
 
 
 def read(file_path: str):
@@ -29,8 +29,8 @@ def read(file_path: str):
     """
 
     global LOG
-    global LOG_PARSED
     global CONSOLE_DISPLAY
+    global FILTERS
 
     while not os.path.isfile(file_path):
         time.sleep(1)
@@ -43,11 +43,16 @@ def read(file_path: str):
                 time.sleep(1)
                 log.seek(where)
             else:
-                LOG.append(line)
-            if "serverCommand" in line:
+                for filter in FILTERS:
+                    if filter in line:
+                        continue
                 line_data = process_line(line)
 
-                LOG_PARSED.append(line_data)
+                LOG.append(line_data)
+
+                # Cut log to size
+                if(len(LOG) > 5000):
+                    LOG = LOG[1000:]
 
                 if line_data.pop("command") is not None:
                     command = line_data["command"]
@@ -136,194 +141,82 @@ def process_line(line):
     return line_data
 
 
-def wait_for_log_parsed(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5):
-    global LOG_PARSED
+# HELPER
+def handle_fuzzy(r, fuzzy):
+    if not r:
+        return r
 
-    length = len(LOG_PARSED)
+    if fuzzy:
+        return "^.*?" + re.escape(r) + ".*?$"
+    else:
+        return r
 
-    def check(line, end_type, end_author, end_content, end_content_fuzzy):
-        if end_type and end_type != line["type"]:
-            return False
 
-        if end_author and end_author != line["author"]:
-            return False
+# HELPER
+def check_line(line_obj, end_type, end_author, end_content, end_content_fuzzy):
+    if end_type and end_type != line_obj["type"]:
+        return False
 
-        if end_content:
-            if end_content_fuzzy:
-                end_content = "^.*?" + end_content + ".*?$"
+    if end_author and end_author != line_obj["author"]:
+        return False
 
-            try:
-                re.match(end_content, line["content"])
-            except:
+    if end_content:
+        end_content = handle_fuzzy(end_content, end_content_fuzzy)
+
+        try:
+            if not re.match(end_content, line_obj["content"]):
                 return False
+        except:
+            return False
 
-        return True
+    return True
+
+
+def get_log_line(within, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True):
+    global LOG
+
+    ts = time.time()
+
+    slice = [line for line in LOG if ts - line["timestamp"] < within]
+
+    for line in slice:
+        if check_line(line, end_type, end_author, end_content, end_content_fuzzy):
+            return line
+
+    return None
+
+def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5):
+    print("WAIT FOR LOG PARSED", start_ts, end_type, end_author, end_content, end_content_fuzzy, delay)
+
+    global LOG
+
+    length = len(LOG)
 
     # Slice log, check lines, etc
     # Check initial slice
-    slice = [line for line in LOG_PARSED if line["timestamp"] > start_ts]
+    slice = [line for line in LOG if line["timestamp"] > start_ts]
+
+    print("INITIAL", slice)
 
     for line in slice:
-        if check(line, end_type, end_author, end_content, end_content_fuzzy):
+        if check_line(line, end_type, end_author, end_content, end_content_fuzzy):
+            print("FOUND", line)
             return line
 
     while True:
-        length_new = len(LOG_PARSED)
+        length_new = len(LOG)
 
         if length_new == length:
             time.sleep(delay)
             continue
 
-        slice = LOG_PARSED[length : length_new]
+        slice = LOG[length : length_new]
+
+        print("MORE", slice)
 
         for line in slice:
-            if check(line, end_type, end_author, end_content, end_content_fuzzy):
+            if check_line(line, end_type, end_author, end_content, end_content_fuzzy):
+                print("FOUND", line)
                 return line
 
-
-def wait_for_log(start_r="", start_fuzzy=True, end_r="", end_fuzzy=True, delay=0.5):
-    """
-    Waits for a certain message to be logged
-    :param start_r: The message regex that defines the start of the waiting period
-    :param start_fuzzy: Whether or not the start regex describes the entire line, or just part of a line
-    :param end_r: The message regex that defines the end of the waiting period
-    :param end_fuzzy: Whether or not the end regex describes the entire line, or just part of a line
-    :param delay: How long to wait inbetween checking for the end message
-    :return: The first line to match end_r
-    """
-
-    global LOG
-
-    print("WAIT", start_r if start_r != "" else "*", end_r if end_r != "" else "*")
-
-    length = len(LOG)
-
-    if end_fuzzy:
-        end_r = "^.*" + end_r + ".*$"
-
-    if start_r != "":
-        if start_fuzzy:
-            start_r = "^.*" + start_r + ".*$"
-
-        # Check if there is already a slice to investigate
-        # Iterate back-to-front over LOG until we find start_r
-        # Then, check all latter elements in LOG if any exist
-        for i in range(length - 1, -1, -1):
-            if re.match(start_r, LOG[i]) and i < length - 1:
-                # There is an initial slice to check
-                extract = [line for line in LOG[i + 1 : ] if re.match(end_r, line)]
-
-                if len(extract) > 0:
-                    # The initial slice contains end_r
-                    return extract[0]
-
-                # We have found the latest occurance of start_r, stop searching
-                break
-
-    # Loop and check for new slices, then check those when they become available
-    while True:
-        length_new = len(LOG)
-
-        if length_new > length:
-            # A new slice has appeared
-            slice = LOG[length : length_new]
-            length = length_new
-
-            extract = [line for line in slice if re.match(end_r, line)]
-
-            if len(extract) > 0:
-                return extract[0]
-
         time.sleep(delay)
-
-
-def info_players():
-    api.press_key(config.get_bind_fuzzy("info players"))
-    wait_for_log(end_r="^[0-9:]*[\s]*Dumped console text to .*$", end_fuzzy=False)
-
-    with open(config.DUMP_P, "r") as dump_f:
-        lines = dump_f.readlines()
-
-    separator_r = r"^[0-9:]*[\s]*-+$"
-    separators = [x for x in range(len(lines)) if re.match(separator_r, lines[x])]
-
-    data = lines[separators[-2] + 1 : separators[-1]]
-
-    players = []
-
-    for line in data:
-        parse_r = r"^[0-9:]*\s*(\d+)\s+\|\s+(.+?)\s+(.*)$"
-
-        try:
-            match = re.match(parse_r, line)
-
-            player_id = match.group(1)
-            player_team = match.group(2)
-            player_name = match.group(3)
-
-            players.append({"id" : player_id, "team" : player_team, "name" : player_name})
-        except:
-            # Probably some other line mixed in
-            continue
-
-    print(players)
-
-    return players
-
-
-def server_status():
-    api.press_key(config.get_bind_fuzzy("serverstatus"))
-    wait_for_log(end_r="^[0-9:]*[\s]*Dumped console text to .*$", end_fuzzy=False)
-
-    with open(config.DUMP_P, "r") as dump_f:
-        lines = dump_f.readlines()
-
-    start1_r = "^[0-9:]*\s*Server settings:$"
-    start1 = [x for x in range(len(lines)) if re.match(start1_r, lines[x])][0] + 1
-
-    start2_r = "^[0-9:]*\s*Players:$"
-    start2 = [x for x in range(len(lines)) if re.match(start2_r, lines[x])][0] + 1
-
-    end_r = "^[0-9:]*\s*Dumped console text to .*$"
-    end = [x for x in range(len(lines)) if re.match(end_r, lines[x])][0]
-
-    server_settings_data = lines[start1 : start2 - 1]
-    parse_r = "^[0-9:]*\s*([^\s]+)\s+([^\s]+)$"
-
-    server_settings = {}
-
-    for line in server_settings_data:
-        try:
-            match = re.match(parse_r, line)
-
-            key = match.group(1)
-            value = match.group(2)
-
-            server_settings[key] = value
-        except:
-            # Probably some other line mixed in
-            pass
-
-    players_data = lines[start2 + 1 : end] # Skip table header
-    parse_r = "^[0-9:]*\s*(\d+)\s*(\d+)\s*(\d+)\s*\"(.+)\"$"
-
-    players = []
-
-    for line in players_data:
-        try:
-            match = re.match(parse_r, line)
-
-            num = match.group(1)
-            score = match.group(2)
-            ping = match.group(3)
-            name = match.group(4)
-
-            player = {"num" : num, "score" : score, "ping" : ping, "name" : name}
-
-            players.append(player)
-        except:
-            pass
-
-    print(server_settings, players)
-
-    return (server_settings, players)

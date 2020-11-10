@@ -62,15 +62,9 @@ async def event_message(ctx):
             time.sleep(1)
             api.exec_command(f"connect {connect_ip}")
         elif cmd == "next":
-            try:
-                api.press_key_mult(config.get_bind("+attack"), int(split_msg[1]) % 10, 0.2)
-            except:
-                api.press_key(config.get_bind("+attack"))
+            serverstate.switch_spec(fwd=True)
         elif cmd == "prev":
-            try:
-                api.press_key_mult(config.get_bind("+speed;wait 10;-speed"), int(split_msg[1]) % 10, 0.2)
-            except:
-                api.press_key(config.get_bind("+speed;wait 10;-speed"))
+            serverstate.switch_spec(fwd=False)
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "triggers":
@@ -216,8 +210,10 @@ if __name__ == "__main__":
             api.api_init()
             break
         except:
-            if input("Your DeFRaG engine is not running. Would you like us to launch it for you? [Y/n]: ") == "Y":
+            if input("Your DeFRaG engine is not running. Would you like us to launch it for you? [Y/n]: ").lower() == "y":
                 launch()
+
+                time.sleep(2)
 
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)

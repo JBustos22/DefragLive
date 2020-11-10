@@ -20,6 +20,8 @@ def api_init():
 
 
 def exec_command(cmd):
+    print(f"Execing command {cmd}")
+
     with open(os.path.join(config.DF_DIR, "twitch_cmd.cfg"), "w+") as f:
         f.write(cmd)
 
@@ -27,11 +29,12 @@ def exec_command(cmd):
 
 
 def press_key(x):
+    print(f"Pressing key {x}")
     WINDOW.send(x, blocking=True, press_duration=30)
 
 
 def press_key_mult(x, amount, delay=0.03):
-    print(f"pressing {x} {amount} times with a delay of {delay}")
+    print(f"Pressing {x} {amount} times with a delay of {delay}")
     for _ in range(amount):
         WINDOW.send(x, blocking=True, press_duration=30)
         time.sleep(delay)
@@ -39,6 +42,6 @@ def press_key_mult(x, amount, delay=0.03):
 
 # duration in seconds
 def hold_key(x, duration):
-    print(f"holding {x} for {duration} seconds")
+    print(f"Holding {x} for {duration} seconds")
 
     WINDOW.send(x, blocking=True, press_duration=duration * 1000)
