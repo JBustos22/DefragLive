@@ -82,6 +82,8 @@ def connect(ip):
     # Create global server object
     SERVER = Server(ip, secret, server_info, players, bot_id)
 
+    switch_spec()
+
 
 def switch_spec(fwd=True):
     global SERVER
