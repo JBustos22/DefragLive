@@ -185,8 +185,10 @@ def get_log_line(within, end_type=None, end_author=None, end_content=None, end_c
 
     return None
 
-def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5):
+def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5, abort_after=20.0):
     print("WAIT FOR LOG PARSED", start_ts, end_type, end_author, end_content, end_content_fuzzy, delay)
+
+    exec_start_ts = time.time()
 
     global LOG
 
@@ -204,6 +206,10 @@ def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_c
             return line
 
     while True:
+        # Abort if we have timed out
+        if time.time() - exec_start_ts > abort_after:
+            raise TimeoutError
+
         length_new = len(LOG)
 
         if length_new == length:
