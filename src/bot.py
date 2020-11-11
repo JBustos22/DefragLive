@@ -55,12 +55,12 @@ async def event_message(ctx):
             serverstate.connect(args[0])
         elif cmd == "restart":
             connect_ip = servers.get_most_popular_server()
-            api.press_key_mult("esc", 2)
-            api.press_key("enter")
-            api.press_key_mult("tab", 10)
-            api.press_key("enter")
+            api.press_key_mult("{Esc}", 2)
+            api.press_key("{Enter}")
+            api.press_key_mult("{Tab}", 10)
+            api.press_key("{Enter}")
             time.sleep(1)
-            api.exec_command(f"connect {connect_ip}")
+            serverstate.connect(connect_ip)
         elif cmd == "next":
             serverstate.switch_spec(fwd=True)
         elif cmd == "prev":
