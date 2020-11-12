@@ -10,6 +10,10 @@ import console
 import serverstate
 from env import environ
 import threading
+import queue
+import asyncio
+import websockets
+import json
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
@@ -166,7 +170,9 @@ def launch():
     process = subprocess.Popen(args=[config.DF_EXE_P, "+map", "q3ctf1"], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=os.path.dirname(config.DF_EXE_P))
 
 
-# Flask api for the twitch extensions
+# ------------------------------------------------------------
+# - Flask API for the twitch extension
+# ------------------------------------------------------------
 
 from flask import Flask, jsonify, request
 app = Flask(__name__)
@@ -174,32 +180,76 @@ app = Flask(__name__)
 
 @app.route('/console')
 def parsed_console_log():
-    output = console.LOG_PARSED[::-1]
-    return jsonify(output)
+    output = console.CONSOLE_DISPLAY[-75:] # [::-1] = reversed. console needs new messages at bottom
+    output = jsonify(output)
+
+    # TODO: fix CORS for production
+    output.headers['Access-Control-Allow-Origin'] = '*'
+
+    return output
 
 
 @app.route('/console/raw')
 def raw_console_log():
-    output = console.CONSOLE_DISPLAY[::-1]
-    return jsonify(output)
+    output = console.LOG[::-1]
+    output = jsonify(output)
+
+    # TODO: fix CORS for production
+    output.headers['Access-Control-Allow-Origin'] = '*'
+
+    return output
 
 
 @app.route('/console/send', methods=['POST'])
 def send_message():
-    msg_json = request.get_json()
-    author = msg_json.get("author", None)
-    message = msg_json.get("message", None)
-    command = msg_json.get("command", None)
+    author = request.form.get('author', None)
+    message = request.form.get('message', None)
+    command = request.form.get('command', None)
+
     if command is not None and command.startswith("!"):
         if ";" in command:  # prevent q3 command injections
             command = command[:command.index(";")]
         api.exec_command(command)
-        return f"Sent mdd command {command}"
+        return jsonify(result=f"Sent mdd command {command}")
     else:
         if ";" in message:  # prevent q3 command injections
             message = message[:message.index(";")]
         api.exec_command(f"say {author} ^7> ^2{message}")
-        return f"Sent {author} ^7> ^2{message}"
+        return jsonify(result=f"Sent {author} ^7> ^2{message}")
+
+    return jsonify(result="Unknown message")
+
+
+# ------------------------------------------------------------
+# - Websocket client
+# ------------------------------------------------------------
+
+async def ws_send(uri, q):
+    async with websockets.connect(uri) as websocket:
+        i_loops = 0
+        while True:
+            if not q.empty():
+                msg = q.get()
+                if msg == '>>quit<<':
+                    await websocket.close(reason='KTHXBYE!')
+                else:
+                    await websocket.send(msg)
+                    await websocket.recv()
+            else:
+                await asyncio.sleep(0.3)
+                i_loops += 1
+                if i_loops >= 100:
+                    await websocket.ping()
+                    i_loops = 0
+
+def ws_worker(q, loop):
+    try:
+        loop.run_until_complete(ws_send(config.WS_ADDRESS, q))
+    except websockets.exceptions.ConnectionClosedError:
+        print('Websocket client disconnected?!\nPlease check if the websocket server is running.')
+        time.sleep(1)
+    finally:
+        ws_worker(q, loop)
 
 
 if __name__ == "__main__":
@@ -212,18 +262,23 @@ if __name__ == "__main__":
         except:
             if input("Your DeFRaG engine is not running. Would you like us to launch it for you? [Y/n]: ").lower() == "y":
                 launch()
-
                 time.sleep(2)
 
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
-    #flask_process = threading.Thread(target=app.run, daemon=True)
-    #flask_process.start()
+
+    flask_process = threading.Thread(target=app.run, daemon=True)
+    flask_process.start()
+
     #sv_log_path = config.DF_DIR + '\\system\\reports\\serverstate.txt'
     #sv_state_process = threading.Thread(target=initialize_serverstate, args=(sv_log_path,), daemon=True)
     #time.sleep(10)
     #sv_state_process.start()
     # sv_state = serverstate.Server('defrag.rocks')
+
+    ws_loop = asyncio.new_event_loop()
+    ws_process = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)
+    ws_process.start()
 
     bot.run()
