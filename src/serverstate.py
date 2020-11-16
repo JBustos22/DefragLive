@@ -37,6 +37,7 @@ class Server:
         for key in server_info:
             setattr(self, key.lstrip('sv_'), server_info[key])
 
+
 class Player:
     def __init__(self, id, player_data):
         self.id = id
@@ -49,6 +50,7 @@ def connect(ip):
     global SERVER
 
     stop_state.set()
+    time.sleep(1)
     # Set a secret model
     secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
     print(colored(f"Connecting to {ip}...", "green"))
@@ -155,8 +157,8 @@ def refresh_server_state(stop_state):
     global SERVER
     prev_state = ""
     while not stop_state.is_set():
-        api.exec_command("svinfo_report serverstate.txt", verbose=False)
         time.sleep(1)
+        api.exec_command("silent svinfo_report serverstate.txt", verbose=False)
         server_info, players = get_svinfo_report(config.STATE_REPORT_P)
 
         if bool(server_info):
@@ -165,13 +167,13 @@ def refresh_server_state(stop_state):
             curr_state = f"Spectating {SERVER.current_player} on {SERVER.mapname} in server {SERVER.hostname} | ip: {SERVER.ip}"
             if curr_state != prev_state:
                 print(colored(curr_state, "blue"))
-                switch_if_nospec()
+            switch_if_nospec()
             prev_state = curr_state
+
 
 def switch_if_nospec():
     global SERVER
     spec_dfn = SERVER.current_player
-
-    if "nospec" in spec_dfn or "ns" in spec_dfn:
+    if "nospec" in spec_dfn:
         print(colored(f"Skipping no-specced player", "red"))
         api.press_key(config.get_bind("+attack"))
