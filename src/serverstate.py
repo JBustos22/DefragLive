@@ -11,177 +11,98 @@ import api
 import re
 import time
 import random
-import os
 import config
+import threading
+from termcolor import colored
+
 
 SERVER = None
+stop_state = threading.Event()
 
 
 class Server:
-    def __init__(self, ip, secret, info, players, bot_id):
-        self.info = info
+    def __init__(self, ip, secret, server_info, players, bot_id):
+        for key in server_info:
+            setattr(self, key.lstrip('sv_'), server_info[key])
         self.players = players
         self.secret = secret
         self.bot_id = bot_id
         self.ip = ip
+        self.current_player = None
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
+
+    def update_info(self, server_info):
+        for key in server_info:
+            setattr(self, key.lstrip('sv_'), server_info[key])
+
+class Player:
+    def __init__(self, id, player_data):
+        self.id = id
+        for key in player_data:
+            setattr(self, key, player_data[key])
+        self.nospec = 'nospec' in player_data['dfn']
 
 
 def connect(ip):
     global SERVER
 
+    stop_state.set()
     # Set a secret model
     secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
-    api.exec_command("seta model " + secret)
-
-    # Make sure the model is set, I hate this
-    api.exec_command("model")
-    api.press_key(config.get_bind("+scores;-scores"))
-
-    # Keep track of time for proper log parsing
+    print(colored(f"Connecting to {ip}...", "green"))
+    api.exec_command("connect " + ip, verbose=False)
     ts = time.time()
-
-    # Connect to the server, respawn.cfg will write a svinfo_report that we have to wait for
-    api.exec_command("connect " + ip)
-
     console.wait_log(start_ts=ts, end_content="report written to")
 
     # Read report
-    with open(config.SVINFO_REPORT_P, "r") as svinfo_report_f:
-        lines = svinfo_report_f.readlines()
-        info = parse_svinfo_report(lines)
+    server_info, players = get_svinfo_report(config.INITIAL_REPORT_P)
+    bot_player = [player for player in players if player.dfn == secret]
 
-    # Reset model to something sensible
-    api.exec_command("model ranger/default")
+    # In case something goes wrong on the first rodeo
+    while server_info is None or bot_player == []:
+        api.exec_command(f"seta df_name {secret}", verbose=False)
+        api.exec_command("svinfo_report initialstate.txt", verbose=False)
+        server_info, players = get_svinfo_report(config.INITIAL_REPORT_P)
+        bot_player = [player for player in players if player.dfn == secret]
+        time.sleep(1)
 
-    # Parse svinfo_report into objects
-    server_info = info["Server Info"] if "Server Info" in info else []
-    players = []
-
-    for header in info:
-        try:
-            match = re.match(r"^Client Info (\d+?)$", header)
-            id = match.group(1)
-
-            player_obj = info[header]
-            player_obj["id"] = id
-
-            players.append(player_obj)
-        except:
-            continue
-
-    print(server_info)
-    print(players)
-    print(secret)
-
-    # Find our own ID
-    bot_id = [player for player in players if player["model"] == secret][0]["id"]
-
+    bot_id = bot_player[0].id  # Find our own ID
     # Create global server object
     SERVER = Server(ip, secret, server_info, players, bot_id)
 
-    switch_spec()
+    api.press_key(config.get_bind("+attack"))
+    api.exec_command(f"seta df_name nospec", verbose=False)
+    stop_state.clear()
+    state_refresher = threading.Thread(target=refresh_server_state, args=(stop_state,), daemon=True)
+    state_refresher.start()
 
 
-def switch_spec(fwd=True):
+def get_svinfo_report(filename):
     global SERVER
 
-    for _ in range(len(SERVER.players)):
-        if fwd:
-            api.press_key(config.get_bind("+attack"))
-        else:
-            api.press_key(config.get_bind("+speed;wait 10;-speed"))
-
-        time.sleep(0.2)
-
-        info = get_svinfo_report()
-
-        spec_dfn = info["Info"]["player"]
-
-        if "nospec" in spec_dfn or "ns" in spec_dfn:
-            print("SKIPPING PLAYER", spec_dfn)
-            continue
-        else:
-            return
-
-    # Reset
-    api.exec_command("team spectator")
-
-
-
-
-def get_spec_id():
-    global SERVER
-
-    players = get_scores()
-
-    bot_player = [player for player in players if player["id"] == SERVER.bot_id][0]
-
-    return bot_player["spec_id"]
-
-
-def get_scores():
-    ts = time.time()
-
-    # This has an internal debounce :) Holy fucking shit
-    api.press_key(config.get_bind_fuzzy("+scores;-scores"))
-
-    line = console.wait_log(start_ts=ts, end_type="SCORES")
-
-    return parse_scores(line)
-
-
-def parse_scores(line):
-    parts = line.split(" ")
-    num_players = int(parts[0])
-
-    players = []
-
-    # Work backwards since the embedded string can contain spaces
-    for i in range(0, num_players * 4, 4):
-        spec_id = parts[i-1]
-        ping = parts[i-2]
-        score = parts[i-3]
-        id = parts[i-4]
-
-        players.append({"id" : id, "score" : score, "ping" : ping, "spec_id" : spec_id})
-
-    return players
-
-
-def get_svinfo_report():
-    global SERVER
-
-    ts = time.time()
-    api.press_key(config.get_bind_fuzzy("svinfo_report serverstate.txt"))
-    console.wait_log(start_ts=ts, end_content="report written to")
-
-    with open(config.SVINFO_REPORT_P, "r") as svinfo_report_f:
+    with open(filename, "r") as svinfo_report_f:
         lines = svinfo_report_f.readlines()
         info = parse_svinfo_report(lines)
 
         # Parse into objects
-        server_info = info["Server Info"] if "Server Info" in info else []
+        if bool(info):
+            server_info = info["Server Info"]
+            server_info['current_player'] = info['Info']['player']
+        else:
+            return None, None
         players = []
 
     for header in info:
         try:
             match = re.match(r"^Client Info (\d+?)$", header)
             id = match.group(1)
-
-            player_obj = info[header]
-            player_obj["id"] = id
-
-            players.append(player_obj)
+            player_data = info[header]
+            players.append(Player(id, player_data))
         except:
             continue
-
-    SERVER.server_info = server_info
-    SERVER.players = players
-
-    return info
+    return server_info, players
 
 
 def parse_svinfo_report(lines):
@@ -219,3 +140,38 @@ def parse_svinfo_report(lines):
             pass
 
     return info
+
+
+def initialize_serverstate(sv_log_path):
+    api.exec_command("varcommand $get_state")
+    while True:
+        with open(sv_log_path, "r") as test_f:
+            lines = test_f.readlines()
+            print(parse_svinfo_report(lines))
+        time.sleep(2)
+
+
+def refresh_server_state(stop_state):
+    global SERVER
+    prev_state = ""
+    while not stop_state.is_set():
+        api.exec_command("svinfo_report serverstate.txt", verbose=False)
+        time.sleep(1)
+        server_info, players = get_svinfo_report(config.STATE_REPORT_P)
+
+        if bool(server_info):
+            SERVER.players = players
+            SERVER.update_info(server_info)
+            curr_state = f"Spectating {SERVER.current_player} on {SERVER.mapname} in server {SERVER.hostname} | ip: {SERVER.ip}"
+            if curr_state != prev_state:
+                print(colored(curr_state, "blue"))
+                switch_if_nospec()
+            prev_state = curr_state
+
+def switch_if_nospec():
+    global SERVER
+    spec_dfn = SERVER.current_player
+
+    if "nospec" in spec_dfn or "ns" in spec_dfn:
+        print(colored(f"Skipping no-specced player", "red"))
+        api.press_key(config.get_bind("+attack"))

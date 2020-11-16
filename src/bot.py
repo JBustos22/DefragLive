@@ -36,9 +36,6 @@ async def event_message(ctx):
     debounce = 1  # interval between consecutive commands and messages
     author = ctx.author.name
     message = ctx.content
-    # make sure the bot ignores itself and the streamer
-    if ctx.author.name.lower() == environ['BOT_NICK'].lower():
-        return
 
     if ";" in message:  # prevent q3 command injections
         message = message[:message.index(";")]
@@ -62,9 +59,9 @@ async def event_message(ctx):
             time.sleep(1)
             serverstate.connect(connect_ip)
         elif cmd == "next":
-            serverstate.switch_spec(fwd=True)
+            api.press_key(config.get_bind("+attack"))
         elif cmd == "prev":
-            serverstate.switch_spec(fwd=False)
+            api.press_key(config.get_bind("+speed;wait 10;-speed"))
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "triggers":
@@ -218,12 +215,8 @@ if __name__ == "__main__":
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
+
     #flask_process = threading.Thread(target=app.run, daemon=True)
     #flask_process.start()
-    #sv_log_path = config.DF_DIR + '\\system\\reports\\serverstate.txt'
-    #sv_state_process = threading.Thread(target=initialize_serverstate, args=(sv_log_path,), daemon=True)
-    #time.sleep(10)
-    #sv_state_process.start()
-    # sv_state = serverstate.Server('defrag.rocks')
 
     bot.run()

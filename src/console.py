@@ -54,7 +54,7 @@ def read(file_path: str):
                 if(len(LOG) > 5000):
                     LOG = LOG[1000:]
 
-                if line_data.pop("command") is not None:
+                if line_data["command"] is not None:
                     command = line_data["command"]
                     handle_command = getattr(cmd, f"handle_{command}")
                     handle_command(line_data)
@@ -137,7 +137,7 @@ def process_line(line):
     except:
         return line_data
 
-    #print(colored(line_data, "yellow"))
+    # print(colored(line_data, "yellow"))
     return line_data
 
 

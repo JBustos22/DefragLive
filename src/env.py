@@ -4,8 +4,8 @@ environ = {
     "BOT_NICK": "q3dflive",
     "BOT_PREFIX": "?",
     "CFG_NAME": "twitchbot.cfg",
-    "DF_DIR": "E:\\GAMES\\DEFRAG TEST\\defrag",
-    "DF_EXE_P" : "E:\\GAMES\\DEFRAG TEST\\iDFe.x64.exe",
+    "DF_DIR": "C:\\Users\\Jorge\\Desktop\\Defrag\\defrag",
+    "DF_EXE_P": "C:\\Users\\Jorge\\Desktop\\Defrag\\iDFe.exe",
     "SVINFO_REPORT_NAME": "serverstate.txt",
-    "CHANNEL": "Donaldduck8"
+    "CHANNEL": "q3dflive"
 }
