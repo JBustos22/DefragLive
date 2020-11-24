@@ -41,15 +41,19 @@ def check_if_valid_ip(ip: str):
     return len([server for (id, server) in servers_data.items() if ip == server["state"]["ip"]]) > 0
 
 
-def get_most_popular_server():
+def get_most_popular_server(ignore_ip=None):
     """ Returns the IP of the server with the most players, or defrag.rocks if no servers are populated """
     servers_data = scrape_servers_data()
+    if ignore_ip is not None:
+        ignore_ip = ignore_ip.replace('defrag.rocks', '140.82.4.154')
+        if ':' not in ignore_ip:
+            ignore_ip += ':27960'
 
     max_plyr_qty = 0
     max_plyr_ip = "defrag.rocks"
 
     for id, server in servers_data.items():
-        if server["players_qty"] > max_plyr_qty:
+        if server["players_qty"] > max_plyr_qty and server['state']['ip'] != ignore_ip:
             max_plyr_qty = server["players_qty"]
             max_plyr_ip = server["state"]["ip"]
 
