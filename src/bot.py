@@ -7,6 +7,7 @@ import subprocess
 import servers
 import time
 import console
+import serverstate
 from env import environ
 import threading
 
@@ -35,41 +36,32 @@ async def event_message(ctx):
     debounce = 1  # interval between consecutive commands and messages
     author = ctx.author.name
     message = ctx.content
-    # make sure the bot ignores itself and the streamer
-    if ctx.author.name.lower() == environ['BOT_NICK'].lower():
-        return
 
     if ";" in message:  # prevent q3 command injections
         message = message[:message.index(";")]
 
     # bot.py, at the bottom of event_message
     if message.startswith("?"):  # spectator client customization and controls
-        print("Command received")
         message = message.strip('?').lower()
         split_msg = message.split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
+        print("Command received:", cmd)
 
         if cmd == "connect":
-            api.exec_command(message)
+            serverstate.connect(args[0])
         elif cmd == "restart":
             connect_ip = servers.get_most_popular_server()
-            api.press_key_mult("esc", 2)
-            api.press_key("enter")
-            api.press_key_mult("tab", 10)
-            api.press_key("enter")
+            api.press_key_mult("{Esc}", 2)
+            api.press_key("{Enter}")
+            api.press_key_mult("{Tab}", 10)
+            api.press_key("{Enter}")
             time.sleep(1)
-            api.exec_command(f"connect {connect_ip}")
+            serverstate.connect(connect_ip)
         elif cmd == "next":
-            try:
-                api.press_key_mult(config.get_bind("+attack"), int(split_msg[1]) % 10, 0.2)
-            except:
-                api.press_key(config.get_bind("+attack"))
+            serverstate.switch_spec('next')
         elif cmd == "prev":
-            try:
-                api.press_key_mult(config.get_bind("+speed;wait 10;-speed"), int(split_msg[1]) % 10, 0.2)
-            except:
-                api.press_key(config.get_bind("+speed;wait 10;-speed"))
+            serverstate.switch_spec('prev')
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "triggers":
@@ -162,28 +154,69 @@ async def event_message(ctx):
 def launch():
     connect_ip = servers.get_most_popular_server()
 
-    df_parent = os.path.dirname(config.DF_DIR)
-    df_exe_p = os.path.join(df_parent, config.DF_EXE_NAME)
-
-    if not os.path.isfile(df_exe_p):
+    if not os.path.isfile(config.DF_EXE_P):
         print("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
         return None
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
     # iDFe will automatically take focus when launching
-    process = subprocess.Popen(args=[df_exe_p, "+connect", connect_ip], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=df_parent)
+    process = subprocess.Popen(args=[config.DF_EXE_P, "+map", "q3ctf1"], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=os.path.dirname(config.DF_EXE_P))
 
-    return df_exe_p
+
+# Flask api for the twitch extensions
+
+from flask import Flask, jsonify, request
+app = Flask(__name__)
+
+
+@app.route('/console')
+def parsed_console_log():
+    output = console.LOG_PARSED[::-1]
+    return jsonify(output)
+
+
+@app.route('/console/raw')
+def raw_console_log():
+    output = console.CONSOLE_DISPLAY[::-1]
+    return jsonify(output)
+
+
+@app.route('/console/send', methods=['POST'])
+def send_message():
+    msg_json = request.get_json()
+    author = msg_json.get("author", None)
+    message = msg_json.get("message", None)
+    command = msg_json.get("command", None)
+    if command is not None and command.startswith("!"):
+        if ";" in command:  # prevent q3 command injections
+            command = command[:command.index(";")]
+        api.exec_command(command)
+        return f"Sent mdd command {command}"
+    else:
+        if ";" in message:  # prevent q3 command injections
+            message = message[:message.index(";")]
+        api.exec_command(f"say {author} ^7> ^2{message}")
+        return f"Sent {author} ^7> ^2{message}"
 
 
 if __name__ == "__main__":
     config.read_cfg()
-    df_exe_p = launch()
+
+    while True:
+        try:
+            api.api_init()
+            break
+        except:
+            if input("Your DeFRaG engine is not running. Would you like us to launch it for you? [Y/n]: ").lower() == "y":
+                launch()
+
+                time.sleep(2)
 
     logfile_path = config.DF_DIR + '\\qconsole.log'
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
 
-    api.api_init(df_exe_p)
+    #flask_process = threading.Thread(target=app.run, daemon=True)
+    #flask_process.start()
 
     bot.run()

@@ -19,6 +19,7 @@ Flask==1.1.2
 Flask-Celery==2.4.3
 Flask-PyMongo==2.3.0
 Flask-Script==2.0.6
+Flask-SocketIO==4.3.1
 future==0.18.2
 idna==2.10
 ipython==7.18.1
@@ -45,6 +46,8 @@ pyinstaller-hooks-contrib==2020.9
 pymongo==3.11.0
 python-dateutil==2.8.1
 python-dotenv==0.14.0
+python-engineio==3.13.2
+python-socketio==4.6.0
 pytz==2020.1
 pywinauto==0.6.8
 pywin32-ctypes==0.2.0

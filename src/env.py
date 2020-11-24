@@ -5,5 +5,7 @@ environ = {
     "BOT_PREFIX": "?",
     "CFG_NAME": "twitchbot.cfg",
     "DF_DIR": "",
+    "DF_EXE_P": "",
+    "SVINFO_REPORT_NAME": "serverstate.txt",
     "CHANNEL": ""
 }
