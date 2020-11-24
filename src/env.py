@@ -7,6 +7,6 @@ environ = {
     "DF_DIR": "",
     "DF_EXE_P" : "",
     "SVINFO_REPORT_NAME": "serverstate.txt",
-    "CHANNEL": "q3defrag",
+    "CHANNEL": "",
     "WS_ADDRESS": "ws://localhost:5005",
 }

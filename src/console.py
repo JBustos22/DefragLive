@@ -169,7 +169,7 @@ def process_line(line):
     except:
         return line_data
 
-    #print(colored(line_data, "yellow"))
+    # print(colored(line_data, "yellow"))
     return line_data
 
 
@@ -216,6 +216,7 @@ def get_log_line(within, end_type=None, end_author=None, end_content=None, end_c
             return line
 
     return None
+
 
 def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5, abort_after=20.0):
     print("WAIT FOR LOG PARSED", start_ts, end_type, end_author, end_content, end_content_fuzzy, delay)

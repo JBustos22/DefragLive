@@ -40,20 +40,17 @@ async def event_message(ctx):
     debounce = 1  # interval between consecutive commands and messages
     author = ctx.author.name
     message = ctx.content
-    # make sure the bot ignores itself and the streamer
-    if ctx.author.name.lower() == environ['BOT_NICK'].lower():
-        return
 
     if ";" in message:  # prevent q3 command injections
         message = message[:message.index(";")]
 
     # bot.py, at the bottom of event_message
     if message.startswith("?"):  # spectator client customization and controls
-        print("Command received")
         message = message.strip('?').lower()
         split_msg = message.split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
+        print("Command received:", cmd)
 
         if cmd == "connect":
             serverstate.connect(args[0])
@@ -66,9 +63,9 @@ async def event_message(ctx):
             time.sleep(1)
             serverstate.connect(connect_ip)
         elif cmd == "next":
-            serverstate.switch_spec(fwd=True)
+            serverstate.switch_spec('next')
         elif cmd == "prev":
-            serverstate.switch_spec(fwd=False)
+            serverstate.switch_spec('prev')
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "triggers":
@@ -270,12 +267,6 @@ if __name__ == "__main__":
 
     flask_process = threading.Thread(target=app.run, daemon=True)
     flask_process.start()
-
-    #sv_log_path = config.DF_DIR + '\\system\\reports\\serverstate.txt'
-    #sv_state_process = threading.Thread(target=initialize_serverstate, args=(sv_log_path,), daemon=True)
-    #time.sleep(10)
-    #sv_state_process.start()
-    # sv_state = serverstate.Server('defrag.rocks')
 
     ws_loop = asyncio.new_event_loop()
     ws_process = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)

@@ -19,18 +19,20 @@ def api_init():
         raise RuntimeError
 
 
-def exec_command(cmd):
-    print(f"Execing command {cmd}")
+def exec_command(cmd, verbose=True):
+    if verbose:
+        print(f"Execing command {cmd}")
 
     with open(os.path.join(config.DF_DIR, "twitch_cmd.cfg"), "w+") as f:
         f.write(cmd)
 
-    press_key(config.get_bind("exec twitch_cmd.cfg"))
+    press_key(config.get_bind("execq twitch_cmd.cfg"), verbose=False)
 
 
-def press_key(x):
-    print(f"Pressing key {x}")
-    WINDOW.send(x, blocking=True, press_duration=30)
+def press_key(key, verbose=True):
+    if verbose:
+        print(f"Pressing key {key}")
+    WINDOW.send(key, blocking=True, press_duration=30)
 
 
 def press_key_mult(x, amount, delay=0.03):
