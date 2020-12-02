@@ -12,6 +12,9 @@ from termcolor import colored
 import dfcommands as cmd
 import traceback
 import re
+import queue
+import json
+from hashlib import blake2b
 
 import api
 import config
@@ -19,7 +22,27 @@ import config
 LOG = []
 CONSOLE_DISPLAY = []
 FILTERS = ["R_AddMD3Surfaces"]
+WS_Q = queue.Queue()
 
+
+def read_tail(thefile):
+        '''
+        Generator function that yields new lines in a file
+        '''
+        # seek the end of the file
+        thefile.seek(0, os.SEEK_END)
+        
+        # start infinite loop
+        while True:
+            # read last line of file
+            line = thefile.readline()
+
+            # sleep if file hasn't been updated
+            if not line:
+                time.sleep(0.5)
+                continue
+
+            yield line
 
 def read(file_path: str):
     """
@@ -36,31 +59,29 @@ def read(file_path: str):
         time.sleep(1)
 
     with open(file_path, 'r') as log:
-        while 1:
-            where = log.tell()
-            line = log.readline()
-            if not line:
-                time.sleep(1)
-                log.seek(where)
-            else:
-                for filter in FILTERS:
-                    if filter in line:
-                        continue
-                line_data = process_line(line)
+        new_lines = read_tail(log)
 
-                LOG.append(line_data)
+        for line in new_lines:
+            for filter in FILTERS:
+                if filter in line:
+                    continue
 
-                # Cut log to size
-                if(len(LOG) > 5000):
-                    LOG = LOG[1000:]
+            line_data = process_line(line)
 
-                if line_data["command"] is not None:
-                    command = line_data["command"]
-                    handle_command = getattr(cmd, f"handle_{command}")
-                    handle_command(line_data)
+            LOG.append(line_data)
 
-                if line_data["type"] in ["PRINT", "SAY"]:
-                    CONSOLE_DISPLAY.append(line_data)
+            # Cut log to size
+            if(len(LOG) > 5000):
+                LOG = LOG[1000:]
+
+            if line_data.pop("command") is not None:
+                command = line_data["command"]
+                handle_command = getattr(cmd, f"handle_{command}")
+                handle_command(line_data)
+
+            if line_data["type"] in ["PRINT", "SAY", "ANNOUNCE"]:
+                CONSOLE_DISPLAY.append(line_data)
+                WS_Q.put(json.dumps({'action': 'message', 'message': line_data}))
 
 
 def process_line(line):
@@ -72,7 +93,14 @@ def process_line(line):
     """
     line = line.strip()
 
-    line_data = {"type": "MISC", "command": None, "author": None, "content": line, "timestamp" : time.time()}
+    line_data = {
+        "id": blake2b(bytes(f"{time.time()}_MISC", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest(), 
+        "type": "MISC", 
+        "command": None, 
+        "author": None, 
+        "content": line, 
+        "timestamp" : time.time()
+    }
 
     # SERVERCOMMAND
     try:
@@ -90,6 +118,7 @@ def process_line(line):
             chat_name = match.group(1)
             chat_message = match.group(2)
 
+            line_data["id"] = blake2b(bytes(f"SAY_{chat_name}_{chat_message}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
             line_data["type"] = "SAY"
             line_data["author"] = chat_name
             line_data["content"] = chat_message
@@ -102,6 +131,7 @@ def process_line(line):
 
             chat_announcement = match.group(1)
 
+            line_data["id"] = blake2b(bytes(f"ANN_{chat_announcement}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
             line_data["type"] = "ANNOUNCE"
             line_data["author"] = None
             line_data["content"] = chat_announcement
@@ -113,6 +143,7 @@ def process_line(line):
 
             print_message = match.group(1)
 
+            line_data["id"] = blake2b(bytes(f"PRINT_{print_message}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
             line_data["type"] = "PRINT"
             line_data["author"] = None
             line_data["content"] = print_message
@@ -124,6 +155,7 @@ def process_line(line):
 
             scores = match.group(1)
 
+            line_data["id"] = blake2b(bytes(f"SCORES_{scores}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
             line_data["type"] = "SCORES"
             line_data["author"] = None
             line_data["content"] = scores

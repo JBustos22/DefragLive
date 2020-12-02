@@ -1,11 +1,12 @@
 environ = {
-    "TMI_TOKEN" :"oauth:u2gtaiil40ltlxbmc2kz8zn1f1gnyy",
-    "CLIENT_ID": "u8qaeps5664v7ddm7hgh42d9ynkanr",
-    "BOT_NICK": "q3dflive",
+    "TMI_TOKEN" :"",
+    "CLIENT_ID": "",
+    "BOT_NICK": "q3defrag",
     "BOT_PREFIX": "?",
     "CFG_NAME": "twitchbot.cfg",
     "DF_DIR": "",
-    "DF_EXE_P": "",
+    "DF_EXE_P" : "",
     "SVINFO_REPORT_NAME": "serverstate.txt",
-    "CHANNEL": ""
+    "CHANNEL": "",
+    "WS_ADDRESS": "ws://localhost:5005",
 }

@@ -8,6 +8,7 @@ CFG_NAME = environ['CFG_NAME']
 CFG_P = os.path.join(DF_DIR, CFG_NAME)
 DUMP_NAME = "condump.txt"
 DUMP_P = os.path.join(DF_DIR, DUMP_NAME)
+WS_ADDRESS = environ['WS_ADDRESS']
 
 STATE_REPORT_P = os.path.join(DF_DIR, "system", "reports", environ["SVINFO_REPORT_NAME"])
 INITIAL_REPORT_P = os.path.join(DF_DIR, "system", "reports", "initialstate.txt")
