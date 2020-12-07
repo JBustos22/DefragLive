@@ -239,6 +239,7 @@ async def ws_send(uri, q):
                     await websocket.ping()
                     i_loops = 0
 
+
 def ws_worker(q, loop):
     try:
         loop.run_until_complete(ws_send(config.WS_ADDRESS, q))
@@ -271,5 +272,8 @@ if __name__ == "__main__":
     ws_loop = asyncio.new_event_loop()
     ws_process = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)
     ws_process.start()
+
+    connect_ip = servers.get_most_popular_server()
+    serverstate.connect(connect_ip)
 
     bot.run()

@@ -14,6 +14,13 @@ STATE_REPORT_P = os.path.join(DF_DIR, "system", "reports", environ["SVINFO_REPOR
 INITIAL_REPORT_P = os.path.join(DF_DIR, "system", "reports", "initialstate.txt")
 
 BINDS = None
+BLACKLISTED_WORDS = []
+
+with open("src/blacklist.txt", "r") as word_file:
+    list_of_lists = []
+    for line in word_file:
+        stripped_line = line.strip()
+        BLACKLISTED_WORDS.append(stripped_line)
 
 
 def get_bind(cmd):
