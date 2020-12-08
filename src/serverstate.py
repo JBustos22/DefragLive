@@ -165,6 +165,10 @@ def connect(ip):
     global SERVER
     global STOP_STATE
 
+    if ip.split(':')[0] not in config.IP_WHITELIST:
+        print(f"Server {ip} is not whitelisted. Refusing.")
+        return
+
     STOP_STATE.set()  # stop server refresh thread
     # Set a secret color cvar
     secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
