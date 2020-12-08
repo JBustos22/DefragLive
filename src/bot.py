@@ -68,6 +68,8 @@ async def event_message(ctx):
             serverstate.switch_spec('prev')
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
+        elif cmd == "clear":
+            api.press_key(config.get_bind_fuzzy("clear"))
         elif cmd == "triggers":
             api.press_key(config.get_bind_fuzzy("scr_triggers_draw"))
         elif cmd == "clips":
