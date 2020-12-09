@@ -23,8 +23,8 @@ IP_WHITELIST = {
     "139.180.168.2", "aus.defrag.rocks"
 }
 
-
-with open("src/blacklist.txt", "r") as word_file:
+blacklist_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'blacklist.txt')
+with open(blacklist_path, "r") as word_file:
     list_of_lists = []
     for line in word_file:
         stripped_line = line.strip()

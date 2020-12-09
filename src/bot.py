@@ -8,6 +8,7 @@ import servers
 import time
 import console
 import serverstate
+import dfcommands
 from env import environ
 import threading
 import queue
@@ -101,7 +102,7 @@ async def event_message(ctx):
         elif cmd == "inputs":
             api.press_key(config.get_bind_fuzzy("df_chs0_draw"))
         elif cmd == "n1":
-            api.exec_command(api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!"))
+            api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
 
         # Mod commands
         elif cmd == "brightness":
@@ -223,30 +224,76 @@ def send_message():
 # - Websocket client
 # ------------------------------------------------------------
 
+def on_ws_message(msg):
+    message = {}
+
+    if msg is None:
+        return
+
+    try:
+        message = json.loads(msg)
+    except Exception as e:
+        print('ERROR [on_ws_message]:', e)
+        return
+
+    # if there is no origin, exit
+    # this function only processes messages directly from twitch console extension
+    if 'origin' not in message:
+            return
+    
+    if 'message' in message:
+        if message['message'] is None:
+            message['message'] = {}
+
+        message_text = message['message']['content']
+
+        if ";" in message_text:  # prevent q3 command injections
+            message_text = message_text[:message_text.index(";")]
+
+        if message_text.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
+            print("proxy command received")
+            api.exec_command(message_text)
+            time.sleep(1)
+        else:
+            author = message['message']['author']
+            author += ' ^7> '
+            author_color_num = min(ord(author[0].lower()), 9) # replace ^[a-z] with ^[0-9]
+            message_content = message_text.lstrip('>').lstrip('<')
+            api.exec_command(f"say ^{author_color_num}{author} ^2{message_content}")
+
+
 async def ws_send(uri, q):
     async with websockets.connect(uri) as websocket:
-        i_loops = 0
-        while True:
-            if not q.empty():
-                msg = q.get()
-                if msg == '>>quit<<':
-                    await websocket.close(reason='KTHXBYE!')
-                else:
-                    await websocket.send(msg)
-                    await websocket.recv()
-            else:
-                await asyncio.sleep(0.3)
-                i_loops += 1
-                if i_loops >= 100:
-                    await websocket.ping()
-                    i_loops = 0
+         while True:
+            try:
+                msg = await asyncio.wait_for(websocket.recv(), timeout=0.5)
+                on_ws_message(msg)
+            except asyncio.TimeoutError:
+                if not q.empty():
+                    msg = q.get()
+                    if msg == '>>quit<<':
+                        await websocket.close(reason='KTHXBYE!')
+                    else:
+                        await websocket.send(msg)
+                    
+            except:
+                if(websocket.closed):
+                    print('Disconnected from WS server?')
+                    print('Trying reconnect. Please check if the websocket server is running.')
+                    websocket = websockets.connect(uri)
+                    
+                await asyncio.sleep(1)
+                continue
+
+    print('ws_send end?')
 
 
 def ws_worker(q, loop):
     try:
         loop.run_until_complete(ws_send(config.WS_ADDRESS, q))
-    except websockets.exceptions.ConnectionClosedError:
-        print('Websocket client disconnected?!\nPlease check if the websocket server is running.')
+    except websockets.exceptions.WebSocketException as e:
+        print('Websocket error:', e)
+        print('Please check if the websocket server is running.')
         time.sleep(1)
     finally:
         ws_worker(q, loop)
