@@ -275,25 +275,22 @@ async def ws_send(uri, q):
                         await websocket.close(reason='KTHXBYE!')
                     else:
                         await websocket.send(msg)
-                    
             except:
                 if(websocket.closed):
-                    print('Disconnected from WS server?')
-                    print('Trying reconnect. Please check if the websocket server is running.')
+                    print('\nDisconnected from WS server?')
+                    print('Trying reconnect. Please check if the websocket server is running!\n')
                     websocket = websockets.connect(uri)
                     
                 await asyncio.sleep(1)
                 continue
-
-    print('ws_send end?')
 
 
 def ws_worker(q, loop):
     try:
         loop.run_until_complete(ws_send(config.WS_ADDRESS, q))
     except websockets.exceptions.WebSocketException as e:
-        print('Websocket error:', e)
-        print('Please check if the websocket server is running.')
+        print('\nWebsocket error:', e)
+        print('Please check if the websocket server is running!\n')
         time.sleep(1)
     finally:
         ws_worker(q, loop)
