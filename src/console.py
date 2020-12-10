@@ -74,14 +74,19 @@ def read(file_path: str):
             if(len(LOG) > 5000):
                 LOG = LOG[1000:]
 
-            if line_data.pop("command") is not None:
-                command = line_data["command"]
+            # if line_data.pop("command") is not None:
+            if 'command' in line_data and line_data['command'] is not None:
+                command = line_data['command']
                 handle_command = getattr(cmd, f"handle_{command}")
                 handle_command(line_data)
 
             if line_data["type"] in ["PRINT", "SAY", "ANNOUNCE"]:
                 CONSOLE_DISPLAY.append(line_data)
                 WS_Q.put(json.dumps({'action': 'message', 'message': line_data}))
+
+
+def message_to_id(msg):
+    return blake2b(bytes(msg, "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
 
 
 def process_line(line):
@@ -94,7 +99,7 @@ def process_line(line):
     line = line.strip()
 
     line_data = {
-        "id": blake2b(bytes(f"{time.time()}_MISC", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest(), 
+        "id": message_to_id(f"{time.time()}_MISC"),
         "type": "MISC", 
         "command": None, 
         "author": None, 
@@ -118,7 +123,7 @@ def process_line(line):
             chat_name = match.group(1)
             chat_message = match.group(2)
 
-            line_data["id"] = blake2b(bytes(f"SAY_{chat_name}_{chat_message}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
+            line_data["id"] = message_to_id(f"SAY_{chat_name}_{chat_message}")
             line_data["type"] = "SAY"
             line_data["author"] = chat_name
             line_data["content"] = chat_message
@@ -131,7 +136,7 @@ def process_line(line):
 
             chat_announcement = match.group(1)
 
-            line_data["id"] = blake2b(bytes(f"ANN_{chat_announcement}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
+            line_data["id"] = message_to_id(f"ANN_{chat_announcement}")
             line_data["type"] = "ANNOUNCE"
             line_data["author"] = None
             line_data["content"] = chat_announcement
@@ -143,7 +148,7 @@ def process_line(line):
 
             print_message = match.group(1)
 
-            line_data["id"] = blake2b(bytes(f"PRINT_{print_message}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
+            line_data["id"] = message_to_id(f"PRINT_{print_message}")
             line_data["type"] = "PRINT"
             line_data["author"] = None
             line_data["content"] = print_message
@@ -155,7 +160,7 @@ def process_line(line):
 
             scores = match.group(1)
 
-            line_data["id"] = blake2b(bytes(f"SCORES_{scores}", "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
+            line_data["id"] = message_to_id(f"SCORES_{scores}")
             line_data["type"] = "SCORES"
             line_data["author"] = None
             line_data["content"] = scores
