@@ -54,7 +54,8 @@ async def event_message(ctx):
         print("Command received:", cmd)
 
         if cmd == "connect":
-            serverstate.connect(args[0])
+            ip = args[0]
+            serverstate.connect(ip)
         elif cmd == "restart":
             connect_ip = servers.get_most_popular_server()
             api.press_key_mult("{Esc}", 2)
@@ -312,14 +313,14 @@ if __name__ == "__main__":
     con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
     con_process.start()
 
+    serverstate_process = threading.Thread(target=serverstate.start, daemon=True)
+    serverstate_process.start()
+
     flask_process = threading.Thread(target=app.run, daemon=True)
     flask_process.start()
 
     ws_loop = asyncio.new_event_loop()
     ws_process = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)
     ws_process.start()
-
-    connect_ip = servers.get_most_popular_server()
-    serverstate.connect(connect_ip)
 
     bot.run()

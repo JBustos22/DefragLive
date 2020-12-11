@@ -35,8 +35,9 @@ def press_key(key, verbose=True):
     WINDOW.send(key, blocking=True, press_duration=30)
 
 
-def press_key_mult(x, amount, delay=0.03):
-    print(f"Pressing {x} {amount} times with a delay of {delay}")
+def press_key_mult(x, amount, delay=0.03, verbose=True):
+    if verbose:
+        print(f"Pressing {x} {amount} times with a delay of {delay}")
     for _ in range(amount):
         WINDOW.send(x, blocking=True, press_duration=30)
         time.sleep(delay)
