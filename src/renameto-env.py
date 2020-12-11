@@ -1,11 +1,13 @@
+'''Copy this file into env.py in the src directory and fill out. DO NOT push changes in this file.'''
+
 environ = {
-    "TMI_TOKEN" :"",
+    "TMI_TOKEN": "",
     "CLIENT_ID": "",
-    "BOT_NICK": "q3defrag",
+    "BOT_NICK": "",
     "BOT_PREFIX": "?",
     "CFG_NAME": "twitchbot.cfg",
     "DF_DIR": "",
-    "DF_EXE_P" : "",
+    "DF_EXE_P": "",
     "SVINFO_REPORT_NAME": "serverstate.txt",
     "CHANNEL": "",
     "WS_ADDRESS": "ws://localhost:5005",
