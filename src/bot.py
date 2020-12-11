@@ -16,6 +16,8 @@ import asyncio
 import websockets
 import json
 
+# neit is dumb
+
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
 # bot setup
