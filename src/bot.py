@@ -16,8 +16,6 @@ import asyncio
 import websockets
 import json
 
-# neit is dumb
-
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
 # bot setup
@@ -74,6 +72,8 @@ async def event_message(ctx):
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "clear":
             api.press_key(config.get_bind_fuzzy("clear"))
+        elif cmd == "reconnect":
+            api.exec_command(f"reconnect")
         elif cmd == "triggers":
             api.press_key(config.get_bind_fuzzy("scr_triggers_draw"))
         elif cmd == "clips":

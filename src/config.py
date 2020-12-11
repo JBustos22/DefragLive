@@ -18,7 +18,7 @@ BLACKLISTED_WORDS = []
 
 IP_WHITELIST = {
     "91.121.153.32",
-    "83.243.73.220:27960", "q3df.ru",
+    "83.243.73.220", "q3df.ru",
     "140.82.4.154", "defrag.rocks",
     "139.180.168.2", "aus.defrag.rocks"
 }
