@@ -17,6 +17,7 @@ import os
 import servers
 
 
+sleep_time = 10
 STATE = None
 STOP_STATE = threading.Event()
 ALREADY_CONNECTING = False
@@ -72,6 +73,7 @@ def start():
             prev_state, curr_state = None, None
             initialize_state()
             init_time = time.time()
+<<<<<<< Updated upstream
 
             while True:
                 time.sleep(1)
@@ -102,6 +104,27 @@ def start():
                         time.sleep(5)  # Either map is loading or console is open, wait a little bit to avoid crashes
         except:
             pass
+=======
+            prev_state, curr_state = None, None
+        else:
+            pre_time = time.time()
+            api.exec_command("silent svinfo_report serverstate.txt", verbose=False)
+
+            if new_report_exists(config.STATE_REPORT_P, pre_time):
+                server_info, players = get_svinfo_report(config.STATE_REPORT_P)
+                if bool(server_info):
+                    STATE.players = players
+                    STATE.update_info(server_info)
+                    validate_state()
+                    if STATE.current_player is not None:
+                        curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname} in server {STATE.hostname} | ip: {STATE.ip}"
+                    if curr_state != prev_state:
+                        print(colored(curr_state, "blue"))
+                    prev_state = curr_state
+                    display_player_name(STATE.current_player_id)
+            else:
+                time.sleep(sleep_time)  # Either map is loading or console is open, wait a little bit to avoid crashes
+>>>>>>> Stashed changes
 
 
 def initialize_state():
@@ -119,7 +142,7 @@ def initialize_state():
                 server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read report
                 bot_player = [player for player in players if player.c1 == secret]
             else:
-                time.sleep(5)  # In menu, connecting, or other.
+                time.sleep(sleep_time)  # In menu, connecting, or other.
 
         bot_id = bot_player[0].id  # Find our own ID
 
