@@ -23,11 +23,17 @@ def exec_command(cmd, verbose=True):
     if verbose:
         print(f"Execing command {cmd}")
 
-    with open(os.path.join(config.DF_DIR, "twitch_cmd.cfg"), "w+") as f:
+    with open(os.path.join(config.DF_DIR, 'twitch_cmd.cfg'), "w+") as f:
         f.write(cmd)
 
-    press_key(config.get_bind("execq twitch_cmd.cfg"), verbose=False)
+    press_key(config.get_bind(f"execq twitch_cmd.cfg"), verbose=False)
 
+
+def exec_state_command(cmd):
+    with open(os.path.join(config.DF_DIR, 'state_cmd.cfg'), "w+") as f:
+        f.write(cmd)
+
+    press_key(config.get_bind(f"execq state_cmd.cfg"), verbose=False)
 
 def press_key(key, verbose=True):
     if verbose:

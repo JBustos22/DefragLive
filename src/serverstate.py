@@ -32,6 +32,7 @@ class State:
         self.current_player = None
         self.current_player_id = -1
         self.idle_counter = 0
+        self.afk_counter = 0
         if self.bot_id in self.spec_ids:
             self.spec_ids.remove(self.bot_id)
 
@@ -50,6 +51,10 @@ class State:
         id_player = id_player[0] if len(id_player) > 0 else None
         return id_player
 
+    def get_inputs(self):
+        bot_player = self.get_player_by_id(self.bot_id)
+        return bot_player.c2.replace(' ', '')
+
 
 class Player:
     def __init__(self, id, player_data):
@@ -62,35 +67,41 @@ class Player:
 def start():
     global STATE
 
-    prev_state, curr_state = None, None
-    initialize_state()
-    init_time = time.time()
-
     while True:
-        time.sleep(1)
-        if new_report_exists(config.INITIAL_REPORT_P, init_time):
-            print("New connection detected. Re-initializing state...")
+        try:
+            prev_state, curr_state = None, None
             initialize_state()
             init_time = time.time()
-            prev_state, curr_state = None, None
-        else:
-            pre_time = time.time()
-            api.exec_command("silent svinfo_report serverstate.txt", verbose=False)
 
-            if new_report_exists(config.STATE_REPORT_P, pre_time):
-                server_info, players = get_svinfo_report(config.STATE_REPORT_P)
-                if bool(server_info):
-                    STATE.players = players
-                    STATE.update_info(server_info)
-                    validate_state()
-                    if STATE.current_player is not None:
-                        curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname} in server {STATE.hostname} | ip: {STATE.ip}"
-                    if curr_state != prev_state:
-                        print(colored(curr_state, "blue"))
-                    prev_state = curr_state
-                    display_player_name(STATE.current_player_id)
-            else:
-                time.sleep(5)  # Either map is loading or console is open, wait a little bit to avoid crashes
+            while True:
+                time.sleep(1)
+                if new_report_exists(config.INITIAL_REPORT_P, init_time):
+                    print("New connection detected. Re-initializing state...")
+                    initialize_state()
+                    init_time = time.time()
+                    prev_state, curr_state = None, None
+                else:
+                    pre_time = time.time()
+                    api.exec_state_command(f'varmath color2 = $chsinfo(152)')
+                    api.exec_state_command("silent svinfo_report serverstate.txt")
+
+                    if new_report_exists(config.STATE_REPORT_P, pre_time):
+                        server_info, players = get_svinfo_report(config.STATE_REPORT_P)
+                        if bool(server_info):
+                            STATE.players = players
+                            STATE.update_info(server_info)
+                            validate_state()
+                            if STATE.current_player is not None:
+                                curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
+                                             f" in server {STATE.hostname} | ip: {STATE.ip}"
+                            if curr_state != prev_state:
+                                print(colored(curr_state, "blue"))
+                            prev_state = curr_state
+                            display_player_name(STATE.current_player_id)
+                    else:
+                        time.sleep(5)  # Either map is loading or console is open, wait a little bit to avoid crashes
+        except:
+            pass
 
 
 def initialize_state():
@@ -103,7 +114,7 @@ def initialize_state():
 
         while server_info is None or bot_player == []:
             init_time = time.time()
-            api.exec_command(f"seta color1 {secret};silent svinfo_report serverstate.txt", verbose=False)
+            api.exec_state_command(f"seta color1 {secret};silent svinfo_report serverstate.txt")
             if new_report_exists(config.STATE_REPORT_P, init_time):
                 server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read report
                 bot_player = [player for player in players if player.c1 == secret]
@@ -126,36 +137,53 @@ def validate_state():
     global STATE
     global STOP_STATE
 
-    MAX_STRIKES = 10  # TODO: move this over to configurable setting by user
-    continue_refresh = True
-    spectating_self = STATE.curr_dfn == 'twitchbot' or STATE.current_player_id == STATE.bot_id
+    non_spec_timeout = 10  # TODO: move this over to configurable setting by user
+    afk_timeout = 24  # TODO: move this over to configurable setting by user
+
+    spectating_self = STATE.curr_dfn == STATE.get_player_by_id(STATE.bot_id).dfn or STATE.current_player_id == STATE.bot_id
     spectating_nospec = STATE.current_player_id not in STATE.spec_ids and STATE.current_player_id != STATE.bot_id
+    spectating_afk = STATE.afk_counter >= afk_timeout
 
-    if spectating_self or spectating_nospec:
-        follow_id = random.choice(STATE.spec_ids) if STATE.spec_ids != [] else -1
+    if spectating_afk:
+        try:
+            STATE.afk_counter = 0
+            STATE.spec_ids.remove(STATE.current_player_id)
+            print("AFK. Switching...")
+        except ValueError:
+            pass
 
-        if follow_id != -1:
+    if spectating_self or spectating_nospec or spectating_afk:
+        follow_id = random.choice(STATE.spec_ids) if STATE.spec_ids != [] else STATE.bot_id  # Find someone else
+
+        if follow_id != STATE.bot_id:  # Found someone successfully, follow this person
             if spectating_nospec:
                 print(colored('Nospec detected. Switching...', 'green'))
             display_player_name(follow_id)
-            api.exec_command(f"follow {follow_id}", verbose=False)
+            api.exec_state_command(f"follow {follow_id}")
             STATE.idle_counter = 0
-        else:
-            if STATE.current_player_id != -1:
-                api.exec_command(f"follow {follow_id}", verbose=False)
-                STATE.current_player_id = -1
 
-            STATE.idle_counter += 1
-            print(f"Not spectating. Strike {STATE.idle_counter}/{MAX_STRIKES}")
+        else:  # Only found the bot player
+            if STATE.current_player_id != STATE.bot_id:  # Stop spectating if wasn't wasn't already
+                api.exec_state_command(f"follow {follow_id}")
+                STATE.current_player_id = STATE.bot_id
 
-            if STATE.idle_counter >= MAX_STRIKES:  # There's been no one on the server to spec, switch servers.
+            STATE.idle_counter += 1  # Was already spectating self, increase idle flag
+            print(f"Not spectating. Strike {STATE.idle_counter}/{non_spec_timeout}")
+
+            if STATE.idle_counter >= non_spec_timeout or spectating_afk:
+                # There's been no one on the server for a while or only afks. Switch servers.
                 new_ip = servers.get_most_popular_server(ignore_ip=STATE.ip)
-                connection_success = connect(new_ip)
-                return not connection_success  # if false, continue working as normal. Else, stop refresh.
-        STATE.current_player_id = follow_id
+                connect(new_ip)
+                return
+        STATE.current_player_id = follow_id  # Spectating someone
         STATE.current_player = STATE.get_player_by_id(follow_id)
 
-    return continue_refresh
+    else:  # check for afk
+        inputs = STATE.get_inputs()
+        if inputs == '':
+            STATE.afk_counter += 1
+        else:
+            STATE.afk_counter = 0  # reset
 
 
 def connect(ip):
@@ -165,7 +193,7 @@ def connect(ip):
 
     connection_time = time.time()
     print(f"Connecting to {ip}...")
-    api.exec_command("connect " + ip, verbose=False)
+    api.exec_state_command("connect " + ip)
     time.sleep(5)
 
     max_attempts = 2
@@ -178,12 +206,12 @@ def connect(ip):
 
 
 def restart_connect(ip):
-    api.press_key_mult("{Esc}", 2, verbose=False)
-    api.press_key("{Enter}", verbose=False)
-    api.press_key_mult("{Tab}", 10, verbose=False)
-    api.press_key("{Enter}", verbose=False)
+    api.press_key_mult("{Esc}", 2)
+    api.press_key("{Enter}")
+    api.press_key_mult("{Tab}", 10)
+    api.press_key("{Enter}")
     time.sleep(1)
-    api.exec_command("connect " + ip, verbose=False)
+    api.exec_state_command("connect " + ip)
 
 
 def new_report_exists(path, time_pov):
@@ -205,10 +233,10 @@ def switch_spec(direction='next'):
 
         if follow_id == STATE.current_player_id:
             print("No other players to switch to.")
-            api.exec_command("displaymessage 380 10 ^1No other players to switch to.", verbose=False)
+            api.exec_state_command("displaymessage 380 10 ^1No other players to switch to.")
         else:
             display_player_name(follow_id)
-            api.exec_command(f"follow {follow_id}", verbose=False)
+            api.exec_state_command(f"follow {follow_id}")
             STATE.idle_counter = 0
             STATE.current_player_id = follow_id
 
@@ -218,7 +246,7 @@ def display_player_name(follow_id):
     if follow_player is not None:
         player_name = follow_player.n
         display_name = player_name if player_name.strip() not in config.BLACKLISTED_WORDS else "*" * len(player_name)
-        api.exec_command(f"set player-name {display_name}", verbose=False)
+        api.exec_state_command(f"set player-name {display_name}")
 
 
 def get_svinfo_report(filename):
