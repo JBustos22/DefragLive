@@ -18,8 +18,7 @@ import servers
 
 
 STATE = None
-STOP_STATE = threading.Event()
-ALREADY_CONNECTING = False
+PAUSE_STATE = False
 
 
 class State:
@@ -66,46 +65,47 @@ class Player:
 
 def start():
     global STATE
+    global PAUSE_STATE
 
     while True:
         try:
+            if PAUSE_STATE:
+                raise Exception("Paused.")
+
             prev_state, curr_state = None, None
             initialize_state()
             init_time = time.time()
 
-            while True:
+            while not new_report_exists(config.INITIAL_REPORT_P, init_time) and not PAUSE_STATE:
                 time.sleep(1)
-                if new_report_exists(config.INITIAL_REPORT_P, init_time):
-                    print("New connection detected. Re-initializing state...")
-                    initialize_state()
-                    init_time = time.time()
-                    prev_state, curr_state = None, None
-                else:
-                    pre_time = time.time()
-                    api.exec_state_command(f'varmath color2 = $chsinfo(152)')
+                pre_time = time.time()
+                api.exec_state_command(f'varmath color2 = $chsinfo(152)')
+                if not PAUSE_STATE:
                     api.exec_state_command("silent svinfo_report serverstate.txt")
+                else:
+                    raise Exception("Paused.")
 
-                    if new_report_exists(config.STATE_REPORT_P, pre_time):
-                        server_info, players = get_svinfo_report(config.STATE_REPORT_P)
-                        if bool(server_info):
-                            STATE.players = players
-                            STATE.update_info(server_info)
-                            validate_state()
-                            if STATE.current_player is not None:
-                                curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
-                                             f" in server {STATE.hostname} | ip: {STATE.ip}"
-                            if curr_state != prev_state:
-                                print(colored(curr_state, "blue"))
-                            prev_state = curr_state
-                            display_player_name(STATE.current_player_id)
-                    else:
-                        time.sleep(5)  # Either map is loading or console is open, wait a little bit to avoid crashes
+                if new_report_exists(config.STATE_REPORT_P, pre_time):
+                    server_info, players = get_svinfo_report(config.STATE_REPORT_P)
+
+                    if bool(server_info):
+                        STATE.players = players
+                        STATE.update_info(server_info)
+                        validate_state()
+                        if STATE.current_player is not None:
+                            curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
+                                         f" in server {STATE.hostname} | ip: {STATE.ip}"
+                        if curr_state != prev_state:
+                            print(colored(curr_state, "blue"))
+                        prev_state = curr_state
+                        display_player_name(STATE.current_player_id)
         except:
             pass
 
 
 def initialize_state():
     global STATE
+    global PAUSE_STATE
 
     try:
         # Set a secret color cvar
@@ -114,7 +114,11 @@ def initialize_state():
 
         while server_info is None or bot_player == []:
             init_time = time.time()
-            api.exec_state_command(f"seta color1 {secret};silent svinfo_report serverstate.txt")
+            if not PAUSE_STATE:
+                api.exec_state_command(f"seta color1 {secret};silent svinfo_report serverstate.txt")
+            else:
+                raise Exception("Paused.")
+
             if new_report_exists(config.STATE_REPORT_P, init_time):
                 server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read report
                 bot_player = [player for player in players if player.c1 == secret]
@@ -135,7 +139,6 @@ def initialize_state():
 
 def validate_state():
     global STATE
-    global STOP_STATE
 
     non_spec_timeout = 10  # TODO: move this over to configurable setting by user
     afk_timeout = 24  # TODO: move this over to configurable setting by user
@@ -187,12 +190,14 @@ def validate_state():
 
 
 def connect(ip):
+    global PAUSE_STATE
     if ip.split(':')[0] not in config.IP_WHITELIST:
         print(f"Server \"{ip}\" is not whitelisted. Refusing connection.")
         return
 
     connection_time = time.time()
     print(f"Connecting to {ip}...")
+    PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
     time.sleep(5)
 
@@ -206,6 +211,7 @@ def connect(ip):
 
 
 def restart_connect(ip):
+    global PAUSE_STATE
     api.press_key_mult("{Esc}", 2)
     api.press_key("{Enter}")
     api.press_key_mult("{Tab}", 10)
@@ -221,7 +227,6 @@ def new_report_exists(path, time_pov):
 
 def switch_spec(direction='next'):
     global STATE
-    global STOP_STATE
 
     spec_ids = STATE.spec_ids if direction == 'next' else STATE.spec_ids[::-1]
 
@@ -233,10 +238,10 @@ def switch_spec(direction='next'):
 
         if follow_id == STATE.current_player_id:
             print("No other players to switch to.")
-            api.exec_state_command("displaymessage 380 10 ^1No other players to switch to.")
+            api.exec_command("displaymessage 380 10 ^1No other players to switch to.")
         else:
             display_player_name(follow_id)
-            api.exec_state_command(f"follow {follow_id}")
+            api.exec_command(f"follow {follow_id}")
             STATE.idle_counter = 0
             STATE.current_player_id = follow_id
 

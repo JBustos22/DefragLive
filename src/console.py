@@ -107,6 +107,20 @@ def process_line(line):
         "timestamp" : time.time()
     }
 
+    if line in {"Vote passed.", "----- R_Init -----"}:
+        import serverstate
+        if not serverstate.PAUSE_STATE:
+            serverstate.PAUSE_STATE = True
+            print("Game is loading, pausing state.")
+
+    if line in {'Com_TouchMemory: 0 msec'}:
+        import serverstate
+        if serverstate.PAUSE_STATE:
+            time.sleep(3)
+            serverstate.PAUSE_STATE = False
+            print("Game loaded. continuing state.")
+
+
     # SERVERCOMMAND
     try:
         sc_r = r"^\^5serverCommand:\s*(\d+?)\s*:\s*(.+?)$"
