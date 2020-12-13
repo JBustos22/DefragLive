@@ -318,11 +318,11 @@ if __name__ == "__main__":
     serverstate_process = threading.Thread(target=serverstate.start, daemon=True)
     serverstate_process.start()
 
-    flask_process = threading.Thread(target=app.run, daemon=True)
-    flask_process.start()
-
-    ws_loop = asyncio.new_event_loop()
-    ws_process = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)
-    ws_process.start()
+    # flask_process = threading.Thread(target=app.run, daemon=True)
+    # flask_process.start()
+    #
+    # ws_loop = asyncio.new_event_loop()
+    # ws_process = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)
+    # ws_process.start()
 
     bot.run()
