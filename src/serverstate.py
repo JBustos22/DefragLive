@@ -19,6 +19,8 @@ import servers
 
 STATE = None
 PAUSE_STATE = False
+
+# Configurable variables
 MESSAGE_REPEATS = 0 # How many times to spam info messages. 0 for none
 AFK_TIMEOUT = 30  # switch after afk detected x consecutive times
 IDLE_TIMEOUT = 10  # alone in server
