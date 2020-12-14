@@ -10,7 +10,7 @@ def scrape_servers_data():
     server_ids = [ele.get('id').split('_')[-1] for ele in soup.findAll('div', {'class': 'server-item shadow'})]
     server_names = [ele.text for ele in soup.findAll('div', {'class': 'server-head'})]
     server_states = [ele.find('ul').text.strip('\n').split('\n') for ele in soup.findAll('div', {'class': 'server-map-info'})]
-    server_players_qty = [len(ele.find_all('span', {'class':'visname'}, text=True)) for ele in soup.findAll('div', {'class': 'server-players'})]
+    server_players_qty = [len(ele.find_all('span', {'class':'visname'})) for ele in soup.findAll('div', {'class': 'server-players'})]
     servers_data = {}
     for i in range(len(server_ids)):
         if server_players_qty[i] > 0:
