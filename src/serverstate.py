@@ -156,7 +156,7 @@ def validate_state():
             STATE.spec_ids.remove(STATE.current_player_id)
             print("AFK. Switching...")
             if not PAUSE_STATE:
-                api.exec_state_command("echo AFK player detected. Switching to the next player.;" * MESSAGE_REPEATS)
+                api.exec_state_command("echo ^2---^3AFK player detected. Switching to the next player.^2---;" * MESSAGE_REPEATS)
         except ValueError:
             pass
 
@@ -167,7 +167,7 @@ def validate_state():
             if spectating_nospec:
                 print(colored('Nospec detected. Switching...', 'green'))
                 if not PAUSE_STATE:
-                    api.exec_state_command("echo Player with no-spec detected. Switching to the next player.;" * MESSAGE_REPEATS)
+                    api.exec_state_command("echo ^2---^3Player with no-spec detected. Switching to the next player.^2---;" * MESSAGE_REPEATS)
             display_player_name(follow_id)
             api.exec_state_command(f"follow {follow_id}")
             STATE.idle_counter = 0
