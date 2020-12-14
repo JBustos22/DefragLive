@@ -73,7 +73,11 @@ async def event_message(ctx):
             serverstate.connect(connect_ip)
         elif cmd == "next":
             await serverstate.switch_spec('next', channel=ctx.channel)
+        elif cmd == "n":
+            await serverstate.switch_spec('next', channel=ctx.channel)
         elif cmd == "prev":
+            await serverstate.switch_spec('prev', channel=ctx.channel)
+        elif cmd == "p":
             await serverstate.switch_spec('prev', channel=ctx.channel)
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
