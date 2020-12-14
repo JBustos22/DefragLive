@@ -10,10 +10,11 @@ import config
 AHK = AHK()
 WINDOW = None
 
+
 def api_init():
     global WINDOW
 
-    WINDOW = AHK.find_window(process=config.DF_EXE_P)
+    WINDOW = AHK.find_window(process=config.DF_EXE_PATH)
 
     if WINDOW == None:
         raise RuntimeError

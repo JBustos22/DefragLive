@@ -19,6 +19,9 @@ import servers
 
 STATE = None
 PAUSE_STATE = False
+MESSAGE_REPEATS = 0 # How many times to spam info messages. 0 for none
+AFK_TIMEOUT = 30  # switch after afk detected x consecutive times
+IDLE_TIMEOUT = 10  # alone in server
 
 
 class State:
@@ -139,19 +142,19 @@ def initialize_state():
 
 def validate_state():
     global STATE
-
-    non_spec_timeout = 10  # TODO: move this over to configurable setting by user
-    afk_timeout = 24  # TODO: move this over to configurable setting by user
+    global PAUSE_STATE
 
     spectating_self = STATE.curr_dfn == STATE.get_player_by_id(STATE.bot_id).dfn or STATE.current_player_id == STATE.bot_id
     spectating_nospec = STATE.current_player_id not in STATE.spec_ids and STATE.current_player_id != STATE.bot_id
-    spectating_afk = STATE.afk_counter >= afk_timeout
+    spectating_afk = STATE.afk_counter >= AFK_TIMEOUT
 
     if spectating_afk:
         try:
             STATE.afk_counter = 0
             STATE.spec_ids.remove(STATE.current_player_id)
             print("AFK. Switching...")
+            if not PAUSE_STATE:
+                api.exec_state_command("echo AFK player detected. Switching to the next player.;" * MESSAGE_REPEATS)
         except ValueError:
             pass
 
@@ -161,6 +164,8 @@ def validate_state():
         if follow_id != STATE.bot_id:  # Found someone successfully, follow this person
             if spectating_nospec:
                 print(colored('Nospec detected. Switching...', 'green'))
+                if not PAUSE_STATE:
+                    api.exec_state_command("echo Player with no-spec detected. Switching to the next player.;" * MESSAGE_REPEATS)
             display_player_name(follow_id)
             api.exec_state_command(f"follow {follow_id}")
             STATE.idle_counter = 0
@@ -171,9 +176,11 @@ def validate_state():
                 STATE.current_player_id = STATE.bot_id
 
             STATE.idle_counter += 1  # Was already spectating self, increase idle flag
-            print(f"Not spectating. Strike {STATE.idle_counter}/{non_spec_timeout}")
+            print(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
+            if not PAUSE_STATE:
+                api.exec_state_command(f"echo Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
 
-            if STATE.idle_counter >= non_spec_timeout or spectating_afk:
+            if STATE.idle_counter >= IDLE_TIMEOUT or spectating_afk:
                 # There's been no one on the server for a while or only afks. Switch servers.
                 new_ip = servers.get_most_popular_server(ignore_ip=STATE.ip)
                 connect(new_ip)
@@ -191,9 +198,6 @@ def validate_state():
 
 def connect(ip):
     global PAUSE_STATE
-    if ip.split(':')[0] not in config.IP_WHITELIST:
-        print(f"Server \"{ip}\" is not whitelisted. Refusing connection.")
-        return
 
     connection_time = time.time()
     print(f"Connecting to {ip}...")
@@ -225,25 +229,30 @@ def new_report_exists(path, time_pov):
     return report_mod_time > time_pov
 
 
-def switch_spec(direction='next'):
+async def switch_spec(direction='next', channel=None):
     global STATE
 
     spec_ids = STATE.spec_ids if direction == 'next' else STATE.spec_ids[::-1]
 
-    if STATE.current_player_id != -1:
+    if STATE.current_player_id != STATE.bot_id:
         next_id_index = spec_ids.index(STATE.current_player_id) + 1
         if next_id_index > len(spec_ids) - 1:
             next_id_index = 0
         follow_id = spec_ids[next_id_index]
 
         if follow_id == STATE.current_player_id:
-            print("No other players to switch to.")
-            api.exec_command("displaymessage 380 10 ^1No other players to switch to.")
+            msg = "No other players to spectate."
+            api.exec_command(f"echo ^1{msg};" * MESSAGE_REPEATS)
+            print(msg)
+            if channel is not None:
+                await channel.send(msg)
         else:
             display_player_name(follow_id)
             api.exec_command(f"follow {follow_id}")
             STATE.idle_counter = 0
             STATE.current_player_id = follow_id
+
+    return True
 
 
 def display_player_name(follow_id):

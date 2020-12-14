@@ -15,6 +15,7 @@ import queue
 import asyncio
 import websockets
 import json
+from multiprocessing import Process
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
@@ -55,6 +56,12 @@ async def event_message(ctx):
 
         if cmd == "connect":
             ip = args[0]
+            if ip.split(':')[0] not in config.IP_WHITELIST:
+                msg = f"Server \"{ip}\" is not whitelisted. Refusing connection."
+                api.exec_command(f"echo ^1{msg};")
+                print(msg)
+                await ctx.channel.send(msg)
+                return
             serverstate.connect(ip)
         elif cmd == "restart":
             connect_ip = servers.get_most_popular_server()
@@ -65,9 +72,9 @@ async def event_message(ctx):
             time.sleep(1)
             serverstate.connect(connect_ip)
         elif cmd == "next":
-            serverstate.switch_spec('next')
+            await serverstate.switch_spec('next', channel=ctx.channel)
         elif cmd == "prev":
-            serverstate.switch_spec('prev')
+            await serverstate.switch_spec('prev', channel=ctx.channel)
         elif cmd == "scores":
             api.hold_key(config.get_bind("+scores"), 3.5)
         elif cmd == "clear":
@@ -106,6 +113,9 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("df_chs0_draw"))
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
+        elif cmd == "map":
+            msg = f"The current map is: {serverstate.STATE.mapname}"
+            await ctx.channel.send(msg)
 
         # Mod commands
         elif cmd == "brightness":
@@ -162,15 +172,15 @@ async def event_message(ctx):
 
 
 def launch():
-    connect_ip = servers.get_most_popular_server()
+    launch_ip = servers.get_most_popular_server()
 
-    if not os.path.isfile(config.DF_EXE_P):
+    if not os.path.isfile(config.DF_EXE_PATH):
         print("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
         return None
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
     # iDFe will automatically take focus when launching
-    process = subprocess.Popen(args=[config.DF_EXE_P, "+map", "q3ctf1"], stdout=subprocess.PIPE, creationflags=0x08000000, cwd=os.path.dirname(config.DF_EXE_P))
+    subprocess.Popen(args=[config.DF_EXE_PATH, "+connect", launch_ip], cwd=os.path.dirname(config.DF_EXE_PATH))
 
 
 # ------------------------------------------------------------
@@ -301,28 +311,46 @@ def ws_worker(q, loop):
 
 if __name__ == "__main__":
     config.read_cfg()
+    window_flag = False
+
+    try:
+        api.api_init()
+        window_flag = True
+        print("Found defrag window.")
+    except:
+        print("Defrag not running, starting...")
+        df_process = Process(target=launch)
+        df_process.start()
+        time.sleep(15)
+
+    from multiprocessing import Process
+
+    logfile_path = config.DF_DIR + '\\qconsole.log'
+    con_thread = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
+    con_thread.start()
+
+    serverstate_thread = threading.Thread(target=serverstate.start, daemon=True)
+    serverstate_thread.start()
+
+    # flask_thread = threading.Thread(target=app.run, daemon=True)
+    # flask_thread.start()
+    #
+    # ws_loop = asyncio.new_event_loop()
+    # ws_thread = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)
+    # ws_thread.start()
+
+    bot_thread = threading.Thread(target=bot.run, daemon=True)
+    bot_thread.start()
 
     while True:
         try:
             api.api_init()
-            break
+            if not window_flag:
+                print("Found defrag window.")
+                window_flag = True
         except:
-            if input("Your DeFRaG engine is not running. Would you like us to launch it for you? [Y/n]: ").lower() == "y":
-                launch()
-                time.sleep(2)
-
-    logfile_path = config.DF_DIR + '\\qconsole.log'
-    con_process = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
-    con_process.start()
-
-    serverstate_process = threading.Thread(target=serverstate.start, daemon=True)
-    serverstate_process.start()
-
-    # flask_process = threading.Thread(target=app.run, daemon=True)
-    # flask_process.start()
-    #
-    # ws_loop = asyncio.new_event_loop()
-    # ws_process = threading.Thread(target=ws_worker, args=(console.WS_Q, ws_loop,), daemon=True)
-    # ws_process.start()
-
-    bot.run()
+            window_flag = False
+            print("Defrag window lost. Restarting...")
+            df_process = Process(target=launch)
+            df_process.start()
+            time.sleep(15)
