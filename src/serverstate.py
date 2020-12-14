@@ -180,7 +180,7 @@ def validate_state():
             STATE.idle_counter += 1  # Was already spectating self, increase idle flag
             print(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
             if not PAUSE_STATE:
-                api.exec_state_command(f"echo Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
+                api.exec_state_command(f"echo ^2---^3Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}^2---")
 
             if STATE.idle_counter >= IDLE_TIMEOUT or spectating_afk:
                 # There's been no one on the server for a while or only afks. Switch servers.
