@@ -8,16 +8,11 @@ This file has the following purposes:
 
 import os
 import time
-from termcolor import colored
 import dfcommands as cmd
-import traceback
 import re
 import queue
 import json
 from hashlib import blake2b
-
-import api
-import config
 
 LOG = []
 CONSOLE_DISPLAY = []
@@ -188,7 +183,7 @@ def process_line(line):
     except:
         return line_data
 
-    # print(colored(line_data, "yellow"))
+    # print(line_data)
     return line_data
 
 

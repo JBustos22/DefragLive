@@ -8,10 +8,8 @@ import servers
 import time
 import console
 import serverstate
-import dfcommands
 from env import environ
 import threading
-import queue
 import asyncio
 import websockets
 import json

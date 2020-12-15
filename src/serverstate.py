@@ -11,8 +11,6 @@ import re
 import time
 import random
 import config
-import threading
-from termcolor import colored
 import os
 import servers
 
@@ -101,7 +99,7 @@ def start():
                             curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
                                          f" in server {STATE.hostname} | ip: {STATE.ip}"
                         if curr_state != prev_state:
-                            print(colored(curr_state, "blue"))
+                            print(curr_state)
                         prev_state = curr_state
                         display_player_name(STATE.current_player_id)
         except:
@@ -165,7 +163,7 @@ def validate_state():
 
         if follow_id != STATE.bot_id:  # Found someone successfully, follow this person
             if spectating_nospec:
-                print(colored('Nospec detected. Switching...', 'green'))
+                print('Nospec detected. Switching...')
                 if not PAUSE_STATE:
                     api.exec_state_command("echo ^2---^3Player with no-spec detected. Switching to the next player.^2---;" * MESSAGE_REPEATS)
             display_player_name(follow_id)
