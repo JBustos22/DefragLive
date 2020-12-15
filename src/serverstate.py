@@ -15,13 +15,15 @@ import os
 import servers
 
 
-STATE = None
-PAUSE_STATE = False
-
 # Configurable variables
 MESSAGE_REPEATS = 1 # How many times to spam info messages. 0 for no messages
-AFK_TIMEOUT = 30  # switch after afk detected x consecutive times
-IDLE_TIMEOUT = 10  # alone in server
+AFK_TIMEOUT = 120  # switch after afk detected x consecutive times
+IDLE_TIMEOUT = 10  # alone in server timeout
+
+
+STATE = None
+PAUSE_STATE = False
+AFK_IPS = []
 
 
 class State:
@@ -37,6 +39,7 @@ class State:
         self.afk_counter = 0
         if self.bot_id in self.spec_ids:
             self.spec_ids.remove(self.bot_id)
+        self.afk_ids = []
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -47,6 +50,8 @@ class State:
         self.current_player = self.get_player_by_id(self.current_player_id)
         if self.bot_id in self.spec_ids:
             self.spec_ids.remove(self.bot_id)
+        # remove afk players from speccable id list
+        [self.spec_ids.remove(afk_id) for afk_id in self.afk_ids if afk_id in self.spec_ids]
 
     def get_player_by_id(self, c_id):
         id_player = [player for player in self.players if player.id == c_id]
@@ -95,7 +100,7 @@ def start():
                         STATE.players = players
                         STATE.update_info(server_info)
                         validate_state()
-                        if STATE.current_player is not None:
+                        if STATE.current_player is not None and STATE.current_player_id != STATE.bot_id:
                             curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
                                          f" in server {STATE.hostname} | ip: {STATE.ip}"
                         if curr_state != prev_state:
@@ -125,8 +130,6 @@ def initialize_state():
             if new_report_exists(config.STATE_REPORT_P, init_time):
                 server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read report
                 bot_player = [player for player in players if player.c1 == secret]
-            else:
-                time.sleep(5)  # In menu, connecting, or other.
 
         bot_id = bot_player[0].id  # Find our own ID
 
@@ -143,6 +146,7 @@ def initialize_state():
 def validate_state():
     global STATE
     global PAUSE_STATE
+    global AFK_IPS
 
     spectating_self = STATE.curr_dfn == STATE.get_player_by_id(STATE.bot_id).dfn or STATE.current_player_id == STATE.bot_id
     spectating_nospec = STATE.current_player_id not in STATE.spec_ids and STATE.current_player_id != STATE.bot_id
@@ -150,11 +154,12 @@ def validate_state():
 
     if spectating_afk:
         try:
-            STATE.afk_counter = 0
             STATE.spec_ids.remove(STATE.current_player_id)
-            print("AFK. Switching...")
+            STATE.afk_ids.append(STATE.current_player_id) if STATE.current_player_id not in STATE.afk_ids else None
             if not PAUSE_STATE:
+                print("AFK. Switching...")
                 api.exec_state_command("echo ^2---^3AFK player detected. Switching to the next player.^2---;" * MESSAGE_REPEATS)
+                STATE.afk_counter = 0
         except ValueError:
             pass
 
@@ -182,9 +187,13 @@ def validate_state():
 
             if STATE.idle_counter >= IDLE_TIMEOUT or spectating_afk:
                 # There's been no one on the server for a while or only afks. Switch servers.
-                new_ip = servers.get_most_popular_server(ignore_ip=STATE.ip)
-                connect(new_ip)
-                return
+                AFK_IPS.append(STATE.ip) if STATE.ip not in AFK_IPS else None
+                new_ip = servers.get_next_active_server(AFK_IPS)
+                if bool(new_ip):
+                    connect(new_ip)
+                    return
+                else:
+                    AFK_IPS = []
         STATE.current_player_id = follow_id  # Spectating someone
         STATE.current_player = STATE.get_player_by_id(follow_id)
 
@@ -194,6 +203,8 @@ def validate_state():
             STATE.afk_counter += 1
         else:
             STATE.afk_counter = 0  # reset
+            STATE.afk_ids = []  # active player found, clear afk list and afk ips
+            AFK_IPS = []
 
 
 def connect(ip):
@@ -231,7 +242,10 @@ def new_report_exists(path, time_pov):
 
 async def switch_spec(direction='next', channel=None):
     global STATE
+    global AFK_IPS
 
+    AFK_IPS = []
+    STATE.afk_list = []
     spec_ids = STATE.spec_ids if direction == 'next' else STATE.spec_ids[::-1]
 
     if STATE.current_player_id != STATE.bot_id:
