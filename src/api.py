@@ -11,13 +11,17 @@ AHK = AHK()
 WINDOW = None
 
 
+class WindowNotFoundError(Exception):
+    pass
+
+
 def api_init():
     global WINDOW
 
     WINDOW = AHK.find_window(process=config.DF_EXE_PATH)
 
     if WINDOW == None:
-        raise RuntimeError
+        raise WindowNotFoundError
 
 
 def exec_command(cmd, verbose=True):

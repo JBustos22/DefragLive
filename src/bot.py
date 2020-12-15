@@ -348,7 +348,7 @@ if __name__ == "__main__":
             if not window_flag:
                 print("Found defrag window.")
                 window_flag = True
-        except:
+        except api.WindowNotFoundError:
             window_flag = False
             print("Defrag window lost. Restarting...")
             df_process = Process(target=launch)
