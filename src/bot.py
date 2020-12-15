@@ -116,6 +116,7 @@ async def event_message(ctx):
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
         elif cmd == "map":
+            api.exec_state_command(f"echo ^2---^3The current map is: {serverstate.STATE.mapname}^2---;")
             msg = f"The current map is: {serverstate.STATE.mapname}"
             await ctx.channel.send(msg)
 
