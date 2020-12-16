@@ -104,7 +104,7 @@ async def event_message(ctx):
                 arg = "yes" if cmd == "f1" else "no"
             else:
                 arg = args[0]
-            api.exec_command(config.get_bind(f"vote {arg}"))
+            api.press_key(config.get_bind(f"vote {arg}"))
         elif cmd == "speedinfo":
             api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
         elif cmd == "speedorig":
