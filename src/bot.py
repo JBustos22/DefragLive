@@ -52,7 +52,7 @@ async def event_message(ctx):
         args = split_msg[1:] if len(split_msg) > 0 else None
         print("Command received:", cmd)
 
-        if cmd == "connect":
+        if cmd in ["connect", "c"]:
             ip = args[0]
             if ip.split(':')[0] not in config.IP_WHITELIST:
                 msg = f"Server \"{ip}\" is not whitelisted. Refusing connection."
