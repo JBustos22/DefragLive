@@ -83,6 +83,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("scr_triggers_draw"))
         elif cmd == "clips":
             api.press_key(config.get_bind_fuzzy("scr_clips_draw"))
+        elif cmd == "lagometer":
+            api.press_key(config.get_bind_fuzzy("lagometer"))
         elif cmd == "snaps":
             api.press_key(config.get_bind_fuzzy("mdd_snap"))
         elif cmd == "cgaz":
