@@ -1,7 +1,7 @@
 """This file contains all the handling logic for each twitchbot command available to DeFRaG players"""
 
 import api
-supported_commands = ["nospec", "info", "help", "howmany"]
+supported_commands = ["nospec", "info", "help", "howmany", "clear"]
 
 
 def scan_for_command(message):
@@ -25,7 +25,7 @@ def handle_help(line_data):
 
 
 def handle_nospec(line_data):
-    api.exec_command(f"say Coming soon.")
+    api.exec_command(f"say Don't want to be spectated? do /color1 nospec, To allow spectating change it /color1 specme")
     return None
 
 
@@ -41,3 +41,9 @@ def handle_howmany(line_data):
     reply_string = f"Your are being watched by {viewer_count} viewer" + ("s" if viewer_count > 0 else "")
     api.exec_command(f"say {reply_string}")
     return None
+
+# can be enabled when it doesnt need dev 1, until then its useless.
+#def handle_clear(line_data):
+#    reply_string = "Ingame chat for viewers on stream has been erased."
+#    api.exec_command(f"say {reply_string}")
+#    return None
