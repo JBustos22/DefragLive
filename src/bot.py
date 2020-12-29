@@ -52,7 +52,7 @@ async def event_message(ctx):
         args = split_msg[1:] if len(split_msg) > 0 else None
         print("Command received:", cmd)
 
-        if cmd == "connect":
+        if cmd in ["connect", "c"]:
             ip = args[0]
             if ip.split(':')[0] not in config.IP_WHITELIST:
                 msg = f"Server \"{ip}\" is not whitelisted. Refusing connection."
@@ -83,6 +83,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("scr_triggers_draw"))
         elif cmd == "clips":
             api.press_key(config.get_bind_fuzzy("scr_clips_draw"))
+        elif cmd == "lagometer":
+            api.press_key(config.get_bind_fuzzy("lagometer"))
         elif cmd == "snaps":
             api.press_key(config.get_bind_fuzzy("mdd_snap"))
         elif cmd == "cgaz":
@@ -104,7 +106,7 @@ async def event_message(ctx):
                 arg = "yes" if cmd == "f1" else "no"
             else:
                 arg = args[0]
-            api.exec_command(config.get_bind(f"vote {arg}"))
+            api.press_key(config.get_bind(f"vote {arg}"))
         elif cmd == "speedinfo":
             api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
         elif cmd == "speedorig":
@@ -116,6 +118,7 @@ async def event_message(ctx):
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
         elif cmd == "map":
+            api.exec_state_command(f"echo ^2---^3The current map is: {serverstate.STATE.mapname}^2---;")
             msg = f"The current map is: {serverstate.STATE.mapname}"
             await ctx.channel.send(msg)
 
