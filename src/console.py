@@ -108,9 +108,12 @@ def process_line(line):
             serverstate.PAUSE_STATE = True
             print("Game is loading, pausing state.")
 
-    if line in {'Com_TouchMemory: 0 msec'}:
+    if 'Com_TouchMemory' in line:
         import serverstate
-        if serverstate.PAUSE_STATE:
+        if serverstate.RECONNECTING:
+            time.sleep(1)
+            serverstate.RECONNECTING = False
+        elif serverstate.PAUSE_STATE:
             time.sleep(3)
             serverstate.PAUSE_STATE = False
             print("Game loaded. continuing state.")

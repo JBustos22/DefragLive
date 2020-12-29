@@ -17,7 +17,7 @@ import servers
 
 # Configurable variables
 MESSAGE_REPEATS = 1 # How many times to spam info messages. 0 for no messages
-AFK_TIMEOUT = 9999  # switch after afk detected x consecutive times
+AFK_TIMEOUT = 120  # switch after afk detected x consecutive times
 IDLE_TIMEOUT = 10  # alone in server timeout
 INIT_TIMEOUT = 10
 
@@ -25,6 +25,7 @@ INIT_TIMEOUT = 10
 STATE = None
 PAUSE_STATE = False
 IGNORE_IPS = []
+RECONNECTING = False
 
 
 class State:
@@ -223,26 +224,37 @@ def connect(ip):
     PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
 
-    # time.sleep(5)
-    #
-    # max_attempts = 2
-    # attempt = 1
-    # while not new_report_exists(config.INITIAL_REPORT_P, connection_time) and attempt <= max_attempts:
-    #     print(f"Retrying connection... (Attempt {attempt}/{max_attempts})")
-    #     restart_connect(ip)
-    #     time.sleep(5 * attempt)
-    #     attempt += 1
-    #     if attempt <= max_attempts:
-    #         IGNORE_IPS.append(ip) if ip not in IGNORE_IPS else None
+    time.sleep(3)
+
+    max_reattempts, reattempt_count = 2, 0
+    max_wait_time, wait_count = 10, 1
+    while not new_report_exists(config.INITIAL_REPORT_P, connection_time) and reattempt_count <= max_reattempts:
+        print(f"Connection not detected. Strike {wait_count}/{max_wait_time}")
+        if wait_count >= max_wait_time:
+            reattempt_count += 1
+            if reattempt_count >= max_reattempts:
+                IGNORE_IPS.append(ip) if ip not in IGNORE_IPS else None
+            else:
+                max_wait_time = 10 * (reattempt_count + 1)
+                wait_count = 1
+                print(f"Retrying connection. Re-attempt {reattempt_count}/{max_reattempts}. Bumping wait time to {max_wait_time}")
+                restart_connect(ip)
+        else:
+            wait_count += 1
+        time.sleep(1)
 
 
 def restart_connect(ip):
     global PAUSE_STATE
+
+    global RECONNECTING
+
+    PAUSE_STATE, RECONNECTING = True, True
     api.press_key_mult("{Esc}", 2)
     api.press_key("{Enter}")
     api.press_key_mult("{Tab}", 10)
     api.press_key("{Enter}")
-    time.sleep(3)
+    time.sleep(2)
     api.exec_state_command("connect " + ip)
 
 
