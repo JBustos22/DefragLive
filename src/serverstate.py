@@ -17,13 +17,14 @@ import servers
 
 # Configurable variables
 MESSAGE_REPEATS = 1 # How many times to spam info messages. 0 for no messages
-AFK_TIMEOUT = 120  # switch after afk detected x consecutive times
+AFK_TIMEOUT = 9999  # switch after afk detected x consecutive times
 IDLE_TIMEOUT = 10  # alone in server timeout
+INIT_TIMEOUT = 10
 
 
 STATE = None
 PAUSE_STATE = False
-AFK_IPS = []
+IGNORE_IPS = []
 
 
 class State:
@@ -114,13 +115,16 @@ def start():
 def initialize_state():
     global STATE
     global PAUSE_STATE
+    global INIT_TIMEOUT
 
     try:
         # Set a secret color cvar
         secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
         server_info, bot_player, timeout_flag, reconnect_tries = None, [], 0, 1
 
+        init_counter = 0
         while server_info is None or bot_player == []:
+            init_counter += 1
             init_time = time.time()
             if not PAUSE_STATE:
                 api.exec_state_command(f"seta color1 {secret};silent svinfo_report serverstate.txt")
@@ -130,6 +134,10 @@ def initialize_state():
             if new_report_exists(config.STATE_REPORT_P, init_time):
                 server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read report
                 bot_player = [player for player in players if player.c1 == secret]
+
+            if init_counter >= INIT_TIMEOUT:
+                new_ip = servers.get_next_active_server(IGNORE_IPS)
+                connect(new_ip)
 
         bot_id = bot_player[0].id  # Find our own ID
 
@@ -146,7 +154,7 @@ def initialize_state():
 def validate_state():
     global STATE
     global PAUSE_STATE
-    global AFK_IPS
+    global IGNORE_IPS
 
     spectating_self = STATE.curr_dfn == STATE.get_player_by_id(STATE.bot_id).dfn or STATE.current_player_id == STATE.bot_id
     spectating_nospec = STATE.current_player_id not in STATE.spec_ids and STATE.current_player_id != STATE.bot_id
@@ -187,13 +195,13 @@ def validate_state():
 
             if STATE.idle_counter >= IDLE_TIMEOUT or spectating_afk:
                 # There's been no one on the server for a while or only afks. Switch servers.
-                AFK_IPS.append(STATE.ip) if STATE.ip not in AFK_IPS else None
-                new_ip = servers.get_next_active_server(AFK_IPS)
+                IGNORE_IPS.append(STATE.ip) if STATE.ip not in IGNORE_IPS else None
+                new_ip = servers.get_next_active_server(IGNORE_IPS)
                 if bool(new_ip):
                     connect(new_ip)
                     return
                 else:
-                    AFK_IPS = []
+                    IGNORE_IPS = []
         STATE.current_player_id = follow_id  # Spectating someone
         STATE.current_player = STATE.get_player_by_id(follow_id)
 
@@ -204,7 +212,7 @@ def validate_state():
         else:
             STATE.afk_counter = 0  # reset
             STATE.afk_ids = []  # active player found, clear afk list and afk ips
-            AFK_IPS = []
+            IGNORE_IPS = []
 
 
 def connect(ip):
@@ -214,15 +222,18 @@ def connect(ip):
     print(f"Connecting to {ip}...")
     PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
-    time.sleep(5)
 
-    max_attempts = 2
-    attempt = 1
-    while not new_report_exists(config.INITIAL_REPORT_P, connection_time) and attempt <= max_attempts:
-        print(f"Retrying connection... (Attempt {attempt}/{max_attempts})")
-        restart_connect(ip)
-        time.sleep(5 * attempt)
-        attempt += 1
+    # time.sleep(5)
+    #
+    # max_attempts = 2
+    # attempt = 1
+    # while not new_report_exists(config.INITIAL_REPORT_P, connection_time) and attempt <= max_attempts:
+    #     print(f"Retrying connection... (Attempt {attempt}/{max_attempts})")
+    #     restart_connect(ip)
+    #     time.sleep(5 * attempt)
+    #     attempt += 1
+    #     if attempt <= max_attempts:
+    #         IGNORE_IPS.append(ip) if ip not in IGNORE_IPS else None
 
 
 def restart_connect(ip):
@@ -231,7 +242,7 @@ def restart_connect(ip):
     api.press_key("{Enter}")
     api.press_key_mult("{Tab}", 10)
     api.press_key("{Enter}")
-    time.sleep(1)
+    time.sleep(3)
     api.exec_state_command("connect " + ip)
 
 
@@ -242,9 +253,9 @@ def new_report_exists(path, time_pov):
 
 async def switch_spec(direction='next', channel=None):
     global STATE
-    global AFK_IPS
+    global IGNORE_IPS
 
-    AFK_IPS = []
+    IGNORE_IPS = []
     STATE.afk_list = []
     spec_ids = STATE.spec_ids if direction == 'next' else STATE.spec_ids[::-1]
 
