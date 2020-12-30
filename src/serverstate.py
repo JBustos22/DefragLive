@@ -1,9 +1,12 @@
 """
-This file contains two important classes that keep the current state of the game:
+This file contains two important classes that contain the current live state of the game:
 State - stores information about the current server, such meta data and players. It contains a set of methods to
          conveniently query information that is expected to be needed frequently.
 Player - stores individual in-depth information about each player. The server object's players attribute contains a
-         list of these objects. Contains a set of methods that make player operations convenient.
+         list of these objects
+
+It also contains many important methods that handle different parts of the server state process. See their documentation
+for details.
 """
 
 import api
@@ -16,10 +19,10 @@ import servers
 
 
 # Configurable variables
-MESSAGE_REPEATS = 1 # How many times to spam info messages. 0 for no messages
-AFK_TIMEOUT = 120  # switch after afk detected x consecutive times
-IDLE_TIMEOUT = 10  # alone in server timeout
-INIT_TIMEOUT = 10
+MESSAGE_REPEATS = 1  # How many times to spam info messages. 0 for no messages.
+AFK_TIMEOUT = 120  # Switch after afk detected x consecutive times.
+IDLE_TIMEOUT = 10  # Alone in server timeout.
+INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
 
 
 STATE = None
@@ -29,6 +32,9 @@ RECONNECTING = False
 
 
 class State:
+    """
+    Class that stores data about the state of the server and players
+    """
     def __init__(self, secret, server_info, players, bot_id):
         for key in server_info:
             setattr(self, key.replace('sv_', ''), server_info[key])
@@ -47,6 +53,7 @@ class State:
         return str(self.__class__) + ": " + str(self.__dict__)
 
     def update_info(self, server_info):
+        """Helper function for resetting the class's properties on state referesh"""
         for key in server_info:
             setattr(self, key.replace('sv_', ''), server_info[key])
         self.current_player = self.get_player_by_id(self.current_player_id)
@@ -56,16 +63,21 @@ class State:
         [self.spec_ids.remove(afk_id) for afk_id in self.afk_ids if afk_id in self.spec_ids]
 
     def get_player_by_id(self, c_id):
+        """Helper function for easily retrieving a player object from a client id number"""
         id_player = [player for player in self.players if player.id == c_id]
         id_player = id_player[0] if len(id_player) > 0 else None
         return id_player
 
     def get_inputs(self):
+        """Helper functions for easily retrieving the latest inputs recorded from the watched player."""
         bot_player = self.get_player_by_id(self.bot_id)
         return bot_player.c2.replace(' ', '')
 
 
 class Player:
+    """
+    Simple class for storing data about each client/player present in the server.
+    """
     def __init__(self, id, player_data):
         self.id = id
         for key in player_data:
@@ -74,6 +86,10 @@ class Player:
 
 
 def start():
+    """
+    The main gateway for fetching the server state through /svinfo_report. It runs through a loop indefinitely and
+    attempts to extract new data only if state is not paused through the PAUSE_STATE flag.
+    """
     global STATE
     global PAUSE_STATE
 
@@ -83,25 +99,27 @@ def start():
                 raise Exception("Paused.")
 
             prev_state, curr_state = None, None
-            initialize_state()
+            initialize_state()  # Handle the first state fetch. Some extra processing needs to be done this time.
             init_time = time.time()
 
+            # Only refresh the STATE object if new data has been read and if state is not paused
             while not new_report_exists(config.INITIAL_REPORT_P, init_time) and not PAUSE_STATE:
                 time.sleep(1)
                 pre_time = time.time()
-                api.exec_state_command(f'varmath color2 = $chsinfo(152)')
+                api.exec_state_command(f'varmath color2 = $chsinfo(152)')  # Store the inputs in the bot's color2 cvar
                 if not PAUSE_STATE:
-                    api.exec_state_command("silent svinfo_report serverstate.txt")
+                    api.exec_state_command("silent svinfo_report serverstate.txt")  # Write a new report
                 else:
                     raise Exception("Paused.")
 
                 if new_report_exists(config.STATE_REPORT_P, pre_time):
+                    # Given that a new report exists, read this new data.
                     server_info, players = get_svinfo_report(config.STATE_REPORT_P)
 
-                    if bool(server_info):
+                    if bool(server_info):  # New data is not empty and valid. Update the state object.
                         STATE.players = players
                         STATE.update_info(server_info)
-                        validate_state()
+                        validate_state()  # Check for nospec, self spec, afk, and any other problems.
                         if STATE.current_player is not None and STATE.current_player_id != STATE.bot_id:
                             curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
                                          f" in server {STATE.hostname} | ip: {STATE.ip}"
@@ -114,29 +132,39 @@ def start():
 
 
 def initialize_state():
+    """
+    Handles necessary processing on the first iteration of state retrieval.
+    Important steps done here:
+        - Check if there's a valid connection
+        - Retrieve the bot's client id using the "color1" cvar and a fresh secret code
+    """
     global STATE
     global PAUSE_STATE
     global INIT_TIMEOUT
 
     try:
-        # Set a secret color cvar
+        # Create a secret code. Only "secret" for one use.
         secret = ''.join(random.choice('0123456789ABCDEF') for i in range(16))
-        server_info, bot_player, timeout_flag, reconnect_tries = None, [], 0, 1
+        server_info, bot_player, timeout_flag = None, [], 0
 
         init_counter = 0
-        while server_info is None or bot_player == []:
+        while server_info is None or bot_player == []:  # Continue running this block until valid data and bot id found
             init_counter += 1
             init_time = time.time()
             if not PAUSE_STATE:
+                # Set color1 to secret code to determine bot's client id
                 api.exec_state_command(f"seta color1 {secret};silent svinfo_report serverstate.txt")
             else:
                 raise Exception("Paused.")
 
-            if new_report_exists(config.STATE_REPORT_P, init_time):
-                server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read report
+            if new_report_exists(config.STATE_REPORT_P, init_time):  # New data detected
+                server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read data
+                # Select player that contains this secret as their color1, this will be the bot player.
                 bot_player = [player for player in players if player.c1 == secret]
 
+            # If loop hits the max iterations, the connection was not established properly
             if init_counter >= INIT_TIMEOUT:
+                # Retry a connection to best server
                 new_ip = servers.get_next_active_server(IGNORE_IPS)
                 connect(new_ip)
 
@@ -153,72 +181,96 @@ def initialize_state():
 
 
 def validate_state():
+    """
+    Analyzes the server state data any issues in our current state, specifically for:
+    - An idle bot (self-spectating)
+    - A lack of players to spec
+    - AFK player detection
+    - No-specced player detection
+    """
     global STATE
     global PAUSE_STATE
     global IGNORE_IPS
 
-    spectating_self = STATE.curr_dfn == STATE.get_player_by_id(STATE.bot_id).dfn or STATE.current_player_id == STATE.bot_id
+    # Current player spectated is our bot, and thus idle.
+    spectating_self = STATE.curr_dfn == STATE.get_player_by_id(STATE.bot_id).dfn \
+                      or STATE.current_player_id == STATE.bot_id
+
+    # Current player spectated has turned on the no-spec system
     spectating_nospec = STATE.current_player_id not in STATE.spec_ids and STATE.current_player_id != STATE.bot_id
+
+    # The player that we are spectating has been AFK for our set limit of AFK strikes
     spectating_afk = STATE.afk_counter >= AFK_TIMEOUT
 
+    # AFK player pre-processing
     if spectating_afk:
         try:
-            STATE.spec_ids.remove(STATE.current_player_id)
+            STATE.spec_ids.remove(STATE.current_player_id)  # Remove afk player from list of spec-able players
+            # Add them to the afk list
             STATE.afk_ids.append(STATE.current_player_id) if STATE.current_player_id not in STATE.afk_ids else None
             if not PAUSE_STATE:
                 print("AFK. Switching...")
-                api.exec_state_command("echo ^2---^3AFK player detected. Switching to the next player.^2---;" * MESSAGE_REPEATS)
-                STATE.afk_counter = 0
+                api.exec_state_command("echo ^2---^3AFK player detected."
+                                       " Switching to the next player.^2---;" * MESSAGE_REPEATS)
+                STATE.afk_counter = 0  # Reset AFK strike counter for next player
         except ValueError:
             pass
 
+    # Next player choice logic
     if spectating_self or spectating_nospec or spectating_afk:
-        follow_id = random.choice(STATE.spec_ids) if STATE.spec_ids != [] else STATE.bot_id  # Find someone else
+        follow_id = random.choice(STATE.spec_ids) if STATE.spec_ids != [] else STATE.bot_id  # Find someone else to spec
 
         if follow_id != STATE.bot_id:  # Found someone successfully, follow this person
             if spectating_nospec:
-                print('Nospec detected. Switching...')
                 if not PAUSE_STATE:
-                    api.exec_state_command("echo ^2---^3Player with no-spec detected. Switching to the next player.^2---;" * MESSAGE_REPEATS)
+                    print('Nospec detected. Switching...')
+                    api.exec_state_command("echo ^2---^3Player with no-spec detected. "
+                                           "Switching to the next player.^2---;" * MESSAGE_REPEATS)
             display_player_name(follow_id)
             api.exec_state_command(f"follow {follow_id}")
-            STATE.idle_counter = 0
+            STATE.idle_counter = 0  # Reset idle counter
 
-        else:  # Only found the bot player
-            if STATE.current_player_id != STATE.bot_id:  # Stop spectating if wasn't wasn't already
+        else:  # Only found ourselves to spec.
+            if STATE.current_player_id != STATE.bot_id:  # Stop spectating player, go to free spec mode instead.
                 api.exec_state_command(f"follow {follow_id}")
                 STATE.current_player_id = STATE.bot_id
-
-            STATE.idle_counter += 1  # Was already spectating self, increase idle flag
-            print(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
-            if not PAUSE_STATE:
-                api.exec_state_command(f"echo ^2---^3Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}^2---")
+            else:  # Was already spectating self. This is an idle strike
+                STATE.idle_counter += 1
+                print(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
+                if not PAUSE_STATE:
+                    api.exec_state_command(f"echo ^2---^3Not spectating. "
+                                           f"Strike {STATE.idle_counter}/{IDLE_TIMEOUT}^2---")
 
             if STATE.idle_counter >= IDLE_TIMEOUT or spectating_afk:
                 # There's been no one on the server for a while or only afks. Switch servers.
+
+                # Ignore this ip until a good server is found
                 IGNORE_IPS.append(STATE.ip) if STATE.ip not in IGNORE_IPS else None
                 new_ip = servers.get_next_active_server(IGNORE_IPS)
                 if bool(new_ip):
                     connect(new_ip)
                     return
-                else:
+                else:  # No ip left to connect to, reset ip blacklist.
                     IGNORE_IPS = []
-        STATE.current_player_id = follow_id  # Spectating someone
+        STATE.current_player_id = follow_id  # Spectating someone.
         STATE.current_player = STATE.get_player_by_id(follow_id)
 
-    else:  # check for afk
+    else:  # AFK detection
         inputs = STATE.get_inputs()
-        if inputs == '':
+        if inputs == '': # Empty key presses. This is an AFK strike.
             STATE.afk_counter += 1
         else:
-            STATE.afk_counter = 0  # reset
-            STATE.afk_ids = []  # active player found, clear afk list and afk ips
+            # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
+            STATE.afk_counter = 0
+            STATE.afk_ids = []
             IGNORE_IPS = []
 
 
 def connect(ip):
+    """
+    Handles connection to a server and re-attempts if connection is not resolved.
+    """
     global PAUSE_STATE
-
     connection_time = time.time()
     print(f"Connecting to {ip}...")
     PAUSE_STATE = True
@@ -228,16 +280,20 @@ def connect(ip):
 
     max_reattempts, reattempt_count = 2, 0
     max_wait_time, wait_count = 10, 1
+
+    # Loop until a new initial_report.txt is found. (Automatically created on respawn per respawn.cfg)
     while not new_report_exists(config.INITIAL_REPORT_P, connection_time) and reattempt_count <= max_reattempts:
+        # Respawn file is not found. This is a connection strike.
         print(f"Connection not detected. Strike {wait_count}/{max_wait_time}")
         if wait_count >= max_wait_time:
             reattempt_count += 1
             if reattempt_count >= max_reattempts:
                 IGNORE_IPS.append(ip) if ip not in IGNORE_IPS else None
             else:
-                max_wait_time = 10 * (reattempt_count + 1)
+                max_wait_time = 10 * (reattempt_count + 1)  # Make wait time proportional to re-attempt iteration
                 wait_count = 1
-                print(f"Retrying connection. Re-attempt {reattempt_count}/{max_reattempts}. Bumping wait time to {max_wait_time}")
+                print(f"Retrying connection. Re-attempt {reattempt_count}/{max_reattempts}."
+                      f" Bumping wait time to {max_wait_time}")
                 restart_connect(ip)
         else:
             wait_count += 1
@@ -245,6 +301,9 @@ def connect(ip):
 
 
 def restart_connect(ip):
+    """
+    Handles hard server connection restart. This method of connecting is menu-proof, in case we were stuck in the menu.
+    """
     global PAUSE_STATE
 
     global RECONNECTING
@@ -259,25 +318,33 @@ def restart_connect(ip):
 
 
 def new_report_exists(path, time_pov):
+    """
+    Helper function for checking if the report is new relative to a given time stamp.
+    """
     report_mod_time = os.path.getmtime(path)
     return report_mod_time > time_pov
 
 
 async def switch_spec(direction='next', channel=None):
+    """
+    Handles "smart" spec switch. Resets data relevant to old connections and players. Can move either forward (default)
+    or backwards (used by ?prev).
+    """
     global STATE
     global IGNORE_IPS
 
     IGNORE_IPS = []
     STATE.afk_list = []
-    spec_ids = STATE.spec_ids if direction == 'next' else STATE.spec_ids[::-1]
+    spec_ids = STATE.spec_ids if direction == 'next' else STATE.spec_ids[::-1]  # Reverse spec_list if going backwards.
 
     if STATE.current_player_id != STATE.bot_id:
+        # Determine the next followable id. If current id is at the last index, wrap to the beginning of the list.
         next_id_index = spec_ids.index(STATE.current_player_id) + 1
         if next_id_index > len(spec_ids) - 1:
             next_id_index = 0
         follow_id = spec_ids[next_id_index]
 
-        if follow_id == STATE.current_player_id:
+        if follow_id == STATE.current_player_id: # Landed on the same id (list is length 1). No other players to spec.
             msg = "No other players to spectate."
             api.exec_command(f"echo ^1{msg};" * MESSAGE_REPEATS)
             print(msg)
@@ -285,14 +352,17 @@ async def switch_spec(direction='next', channel=None):
                 await channel.send(msg)
         else:
             display_player_name(follow_id)
-            api.exec_command(f"follow {follow_id}")
-            STATE.idle_counter = 0
-            STATE.current_player_id = follow_id
+            api.exec_command(f"follow {follow_id}")  # Follow this player.
+            STATE.idle_counter = 0  # Reset idle strike flag since a followable non-bot id was found.
+            STATE.current_player_id = follow_id  # Notify the state object of the new player we are spectating.
 
     return True
 
 
 def display_player_name(follow_id):
+    """
+    Displays the player's name in the player-name custom cvar. Censor if in the list of blacklisted words.
+    """
     follow_player = STATE.get_player_by_id(follow_id)
     if follow_player is not None:
         player_name = follow_player.n
@@ -301,6 +371,9 @@ def display_player_name(follow_id):
 
 
 def get_svinfo_report(filename):
+    """
+    Handles parsed data of the server info report. Turns the parsed data into coherent objects.
+    """
     global STATE
 
     with open(filename, "r") as svinfo_report_f:
@@ -323,17 +396,22 @@ def get_svinfo_report(filename):
             match = re.match(r"^Client Info (\d+?)$", header)
             cli_id = match.group(1)
             player_data = info[header]
-            if player_data['c1'] != 'nospec':
+
+            if player_data['c1'] != 'nospec': # Filter out nospec'd players out of followable ids
                 players.append(Player(cli_id, player_data))
-                if player_data['t'] == '0':
+                if player_data['t'] == '0':  # Filter out spectators out of followable ids.
                     spec_ids.append(cli_id)
         except:
             continue
+
     server_info['spec_ids'] = spec_ids
     return server_info, players
 
 
 def parse_svinfo_report(lines):
+    """
+    Handles parsing of the server report files. Extracts only the necessary information, such as server and player data.
+    """
     info = {}
     header = None
 
@@ -347,7 +425,7 @@ def parse_svinfo_report(lines):
         # Check for ip
         if ip is None:
             try:
-                ip = re.match(title_r, line).group(1)
+                ip = re.match(title_r, line).group(1)  # Extract server's ip
             except:
                 pass
 
