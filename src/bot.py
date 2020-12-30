@@ -354,8 +354,9 @@ if __name__ == "__main__":
                 print("Found defrag window.")
                 window_flag = True
         except api.WindowNotFoundError:
-            window_flag = False
-            print("Defrag window lost. Restarting...")
-            df_process = Process(target=launch)
-            df_process.start()
-            time.sleep(15)
+            if not serverstate.PAUSE_STATE:
+                window_flag = False
+                print("Defrag window lost. Restarting...")
+                df_process = Process(target=launch)
+                df_process.start()
+                time.sleep(15)

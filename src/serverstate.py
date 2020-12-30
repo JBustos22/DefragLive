@@ -224,7 +224,7 @@ def connect(ip):
     PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
 
-    time.sleep(3)
+    time.sleep(2)
 
     max_reattempts, reattempt_count = 2, 0
     max_wait_time, wait_count = 10, 1
