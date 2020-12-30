@@ -23,12 +23,14 @@ MESSAGE_REPEATS = 1  # How many times to spam info messages. 0 for no messages.
 AFK_TIMEOUT = 120  # Switch after afk detected x consecutive times.
 IDLE_TIMEOUT = 10  # Alone in server timeout.
 INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
+MAP_LOAD_WAIT = 3  # Time to wait for a map to load. (Will increase proportional to retries count)
 
 
 STATE = None
 PAUSE_STATE = False
 IGNORE_IPS = []
 RECONNECTING = False
+VID_RESTARTING = False
 
 
 class State:
@@ -92,6 +94,7 @@ def start():
     """
     global STATE
     global PAUSE_STATE
+    global VID_RESTARTING
 
     while True:
         try:
@@ -107,9 +110,10 @@ def start():
                 time.sleep(1)
                 pre_time = time.time()
                 api.exec_state_command(f'varmath color2 = $chsinfo(152)')  # Store the inputs in the bot's color2 cvar
+
                 if not PAUSE_STATE:
                     api.exec_state_command("silent svinfo_report serverstate.txt")  # Write a new report
-                else:
+                elif not VID_RESTARTING:
                     raise Exception("Paused.")
 
                 if new_report_exists(config.STATE_REPORT_P, pre_time):
@@ -271,11 +275,11 @@ def connect(ip):
     Handles connection to a server and re-attempts if connection is not resolved.
     """
     global PAUSE_STATE
+    global MAP_LOAD_WAIT
     connection_time = time.time()
     print(f"Connecting to {ip}...")
     PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
-
     time.sleep(2)
 
     max_reattempts, reattempt_count = 2, 0
@@ -291,6 +295,7 @@ def connect(ip):
                 IGNORE_IPS.append(ip) if ip not in IGNORE_IPS else None
             else:
                 max_wait_time = 10 * (reattempt_count + 1)  # Make wait time proportional to re-attempt iteration
+                MAP_LOAD_WAIT = reattempt_count + 1 * MAP_LOAD_WAIT
                 wait_count = 1
                 print(f"Retrying connection. Re-attempt {reattempt_count}/{max_reattempts}."
                       f" Bumping wait time to {max_wait_time}")

@@ -91,6 +91,7 @@ def process_line(line):
     :param line: Console line to be processed
     :return: Data dictionary containing useful data about the line
     """
+    import serverstate
     line = line.strip()
 
     line_data = {
@@ -102,21 +103,29 @@ def process_line(line):
         "timestamp" : time.time()
     }
 
-    if line in {"Vote passed.", "----- R_Init -----"}:
-        import serverstate
+    if line in {"Vote passed.", "RE_Shutdown( 0 )"}:
         if not serverstate.PAUSE_STATE:
             serverstate.PAUSE_STATE = True
-            print("Game is loading, pausing state.")
+            print("Game is loading. Pausing state.")
+
+    if line in {"RE_Shutdown( 1 )"}:
+        print("Vid Restarting. Pausing state.")
+        serverstate.PAUSE_STATE = True
+        serverstate.VID_RESTARTING = True
 
     if 'Com_TouchMemory' in line:
-        import serverstate
         if serverstate.RECONNECTING:
-            time.sleep(1)
+            time.sleep(2)
             serverstate.RECONNECTING = False
+        elif serverstate.VID_RESTARTING:
+            time.sleep(2)
+            print("Done.")
+            serverstate.VID_RESTARTING = False
         elif serverstate.PAUSE_STATE:
-            time.sleep(3)
+            time.sleep(serverstate.MAP_LOAD_WAIT)
             serverstate.PAUSE_STATE = False
-            print("Game loaded. continuing state.")
+            print("Game loaded. Continuing state.")
+            serverstate.MAP_LOAD_WAIT = 3
 
 
     # SERVERCOMMAND

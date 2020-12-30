@@ -78,7 +78,7 @@ async def event_message(ctx):
         elif cmd == "clear":
             api.press_key(config.get_bind_fuzzy("clear"))
         elif cmd == "reconnect":
-            api.exec_command(f"reconnect")
+            serverstate.connect(serverstate.STATE.ip)
         elif cmd == "triggers":
             api.press_key(config.get_bind_fuzzy("scr_triggers_draw"))
         elif cmd == "clips":
