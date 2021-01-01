@@ -107,7 +107,7 @@ def start():
 
             # Only refresh the STATE object if new data has been read and if state is not paused
             while not new_report_exists(config.INITIAL_REPORT_P) and not PAUSE_STATE:
-                time.sleep(1)
+                time.sleep(2)
                 api.exec_state_command(f'varmath color2 = $chsinfo(152)')  # Store the inputs in the bot's color2 cvar
 
                 if not PAUSE_STATE:

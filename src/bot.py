@@ -350,6 +350,7 @@ if __name__ == "__main__":
     while True:
         try:
             api.api_init()
+            time.sleep(10)
             if not window_flag:
                 print("Found defrag window.")
                 window_flag = True

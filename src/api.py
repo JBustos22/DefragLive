@@ -40,6 +40,7 @@ def exec_state_command(cmd):
 
     press_key(config.get_bind(f"execq state_cmd.cfg"), verbose=False)
 
+
 def press_key(key, verbose=True):
     if verbose:
         print(f"Pressing key {key}")
