@@ -38,9 +38,17 @@ def handle_info(line_data):
 
 
 def handle_howmany(line_data):
-    import serverstate
-    viewer_count = 69
-    reply_string = f"$chsinfo(117) ^7you are being watched by ^3{viewer_count} ^7viewer" + ("s" if viewer_count > 0 else "")
+    client_id = "u8qaeps5664v7ddm7hgh42d9ynkanr"
+    client_secret = "mp8m7yb3nsgq9c7j2ifwnfcufac4c4"
+    token_url = f"https://id.twitch.tv/oauth2/token?client_id={client_id}&client_secret={client_secret}&grant_type=client_credentials"
+    r = requests.post(token_url)
+    token = r.json()['access_token']
+    stream_url = f"https://api.twitch.tv/helix/streams?user_login={'defraglive'}"
+    headers = {"Authorization": f"Bearer {token}", "Client-Id": client_id}
+    r = requests.get(stream_url, headers=headers)
+    stream_data = r.json()['data']
+    viewer_count = stream_data[0]['viewer_count']
+    reply_string = f"$chsinfo(117) ^2-- you are being watched by {viewer_count} viewer" + ("s" if viewer_count > 0 else "")
     api.exec_command(f"varcommand say {reply_string}")
     return None
 
