@@ -20,7 +20,7 @@ import servers
 
 # Configurable variables
 MESSAGE_REPEATS = 1  # How many times to spam info messages. 0 for no messages.
-AFK_TIMEOUT = 120  # Switch after afk detected x consecutive times.
+AFK_TIMEOUT = 4  # Switch after afk detected x consecutive times.
 IDLE_TIMEOUT = 10  # Alone in server timeout.
 INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
 MAP_LOAD_WAIT = 3  # Time to wait for a map to load. (Will increase proportional to retries count)
@@ -108,10 +108,10 @@ def start():
             # Only refresh the STATE object if new data has been read and if state is not paused
             while not new_report_exists(config.INITIAL_REPORT_P) and not PAUSE_STATE:
                 time.sleep(2)
-                api.exec_state_command(f'varmath color2 = $chsinfo(152)')  # Store the inputs in the bot's color2 cvar
 
                 if not PAUSE_STATE:
-                    api.exec_state_command("silent svinfo_report serverstate.txt")  # Write a new report
+                    api.exec_state_command("varmath color2 = $chsinfo(152);"  # Store inputs in color2
+                                           "silent svinfo_report serverstate.txt")  # Write a new report
                 elif not VID_RESTARTING:
                     raise Exception("Paused.")
 
@@ -376,7 +376,7 @@ def display_player_name(follow_id):
     if follow_player is not None:
         player_name = follow_player.n
         display_name = player_name if player_name.strip() not in config.BLACKLISTED_WORDS else "*" * len(player_name)
-        api.exec_state_command(f"set player-name {display_name}")
+        # api.exec_state_command(f"set player-name {display_name}")
 
 
 def get_svinfo_report(filename):
