@@ -21,7 +21,7 @@ import servers
 # Configurable variables
 MESSAGE_REPEATS = 1  # How many times to spam info messages. 0 for no messages.
 AFK_TIMEOUT = 60  # Switch after afk detected x consecutive times.
-IDLE_TIMEOUT = 10  # Alone in server timeout.
+IDLE_TIMEOUT = 5  # Alone in server timeout.
 INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
 MAP_LOAD_WAIT = 3  # Time to wait for a map to load. (Will increase proportional to retries count)
 
@@ -261,6 +261,8 @@ def validate_state():
         inputs = STATE.get_inputs()
         if inputs == '': # Empty key presses. This is an AFK strike.
             STATE.afk_counter += 1
+            if STATE.afk_counter >= 5:
+                print(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             STATE.afk_counter = 0
