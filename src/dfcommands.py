@@ -19,19 +19,19 @@ def scan_for_command(message):
 # The following are all the handler functions. They each take in line_data and return None
 
 def handle_help(line_data):
-    reply_string = "Current commands are ?nospec, ?info, ?help, ?clear, and ?viewers"
+    reply_string = "^7Current commands are ^3?^7nospec, ^3?^7info, ^3?^7help, ^3?^7clear, and ^3?^7viewers"
     api.exec_command(f"say {reply_string}")
     return None
 
 
 def handle_nospec(line_data):
-    api.exec_command(f"say Don't want to be spectated? do /color1 nospec, To allow spectating change it /color1 specme")
+    api.exec_command(f"say ^7Don't want to be spectated? do ^3/color1 nospec^7, To allow spectating change it ^3/color1 specme")
     return None
 
 
 def handle_info(line_data):
-    reply_string = "This is a 24/7 livestream: https://defrag.tv | Contact: defragtv@gmail.com. " \
-                  "| Use ?help for a list of commands"
+    reply_string = "^7This is a ^324/7 ^7livestream: ^3https://defrag.tv ^7| Contact: ^3defragtv@gmail.com. " \
+                  "^7| Use ^3?^7help for a list of commands"
     api.exec_command(f"say {reply_string}")
     return None
 
@@ -39,12 +39,12 @@ def handle_info(line_data):
 def handle_viewers(line_data):
     import serverstate
     viewer_count = 5
-    reply_string = f"{serverstate.STATE.current_player.n}, you are being watched by {viewer_count} viewer" + ("s" if viewer_count > 0 else "")
+    reply_string = f"^1{serverstate.STATE.current_player.n}^7, you are being watched by ^3{viewer_count} ^7viewer" + ("s" if viewer_count > 0 else "")
     api.exec_command(f"say {reply_string}")
     return None
 
 
 def handle_clear(line_data):
-   reply_string = "Ingame chat for viewers on stream has been erased."
+   reply_string = "^7Ingame chat for viewers on stream has been ^1erased."
    api.exec_command(f"clear; say {reply_string}")
    return None
