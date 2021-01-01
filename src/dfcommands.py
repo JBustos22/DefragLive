@@ -49,7 +49,7 @@ def handle_howmany(line_data):
     r = requests.get(stream_url, headers=headers)
     stream_data = r.json()['data']
     viewer_count = stream_data[0]['viewer_count']
-    reply_string = f"$chsinfo(117) ^2-- you are being watched by {viewer_count} viewer" + ("s" if viewer_count > 0 else "")
+    reply_string = f"$chsinfo(117) ^7-- you are being watched by ^3{viewer_count} ^7viewer" + ("s" if viewer_count > 0 else "")
     api.exec_command(f"varcommand say {reply_string}")
     return None
 
