@@ -261,8 +261,10 @@ def validate_state():
         inputs = STATE.get_inputs()
         if inputs == '': # Empty key presses. This is an AFK strike.
             STATE.afk_counter += 1
-            if STATE.afk_counter >= 5:
+            if STATE.afk_counter >= 15 and STATE.afk_counter % 5 == 0:
                 print(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
+                api.exec_state_command(f"echo ^2---^3AFK player detected. Switching in"
+                                       f" {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.^2---;" * MESSAGE_REPEATS)
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             STATE.afk_counter = 0
