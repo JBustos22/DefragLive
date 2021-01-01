@@ -39,6 +39,7 @@ def read_tail(thefile):
 
             yield line
 
+
 def read(file_path: str):
     """
     Reads the console log file every second and sends the console lines for processing
@@ -100,7 +101,7 @@ def process_line(line):
         "command": None, 
         "author": None, 
         "content": line, 
-        "timestamp" : time.time()
+        "timestamp": time.time()
     }
 
     if line in {"Vote passed.", "RE_Shutdown( 0 )"}:
@@ -113,7 +114,7 @@ def process_line(line):
         serverstate.PAUSE_STATE = True
         serverstate.VID_RESTARTING = True
 
-    if 'Com_TouchMemory' in line:
+    if 'Com_TouchMemory' in line or "entered the game." in line:
         if serverstate.RECONNECTING:
             time.sleep(2)
             serverstate.RECONNECTING = False
@@ -130,15 +131,17 @@ def process_line(line):
 
     # SERVERCOMMAND
     try:
-        sc_r = r"^\^5serverCommand:\s*(\d+?)\s*:\s*(.+?)$"
-        match = re.match(sc_r, line)
-
-        sv_command_id = match.group(1)
-        sv_command = match.group(2)
+        # sc_r = r"^\^5serverCommand:\s*(\d+?)\s*:\s*(.+?)$"
+        # match = re.match(sc_r, line)
+        #
+        # sv_command_id = match.group(1)
+        # sv_command = match.group(2)
 
         def parse_chat_message(command):
             # CHAT MESSAGE (BY PLAYER)
-            chat_message_r = r"^chat\s*\"[\x19]*\[*(.*?)[\x19]*?\]*?\x19:\s*(.*?)\".*?$"
+
+            # chat_message_r = r"^chat\s*\"[\x19]*\[*(.*?)[\x19]*?\]*?\x19:\s*(.*?)\".*?$" #/developer 1
+            chat_message_r = r"(.*)\^7: \^\d(.*)"
             match = re.match(chat_message_r, command)
 
             chat_name = match.group(1)
@@ -188,7 +191,8 @@ def process_line(line):
 
         for fun in [parse_chat_message, parse_chat_announce, parse_print, parse_scores]:
             try:
-                fun(sv_command)
+                # fun(sv_command)
+                fun(line)
                 break
             except:
                 continue

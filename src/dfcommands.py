@@ -1,7 +1,7 @@
 """This file contains all the handling logic for each twitchbot command available to DeFRaG players"""
 
 import api
-supported_commands = ["nospec", "info", "help", "howmany", "clear"]
+supported_commands = ["nospec", "info", "help", "viewers", "clear"]
 
 
 def scan_for_command(message):
@@ -11,7 +11,7 @@ def scan_for_command(message):
     :return: The command that has been called. None if no command found
     """
     for command in supported_commands:
-        if message.startswith(f"^2?{command}"):
+        if message.startswith(f"?{command}"):
             return command
     return None
 
@@ -19,7 +19,7 @@ def scan_for_command(message):
 # The following are all the handler functions. They each take in line_data and return None
 
 def handle_help(line_data):
-    reply_string = "Current commands are ?nospec, ?info, ?help, and ?howmany"
+    reply_string = "Current commands are ?nospec, ?info, ?help, ?clear, and ?viewers"
     api.exec_command(f"say {reply_string}")
     return None
 
@@ -30,20 +30,21 @@ def handle_nospec(line_data):
 
 
 def handle_info(line_data):
-    reply_string = "This is a 24/7 livestream: https://www.twitch.tv/defraglive. Contact: defragtv@gmail.com. " \
-                  "Use ?help for all the available commands"
+    reply_string = "This is a 24/7 livestream: https://defrag.tv | Contact: defragtv@gmail.com. " \
+                  "| Use ?help for a list of commands"
     api.exec_command(f"say {reply_string}")
     return None
 
 
-def handle_howmany(line_data):
+def handle_viewers(line_data):
+    import serverstate
     viewer_count = 5
-    reply_string = f"Your are being watched by {viewer_count} viewer" + ("s" if viewer_count > 0 else "")
+    reply_string = f"{serverstate.STATE.current_player.n}, you are being watched by {viewer_count} viewer" + ("s" if viewer_count > 0 else "")
     api.exec_command(f"say {reply_string}")
     return None
 
-# can be enabled when it doesnt need dev 1, until then its useless.
-#def handle_clear(line_data):
-#    reply_string = "Ingame chat for viewers on stream has been erased."
-#    api.exec_command(f"say {reply_string}")
-#    return None
+
+def handle_clear(line_data):
+   reply_string = "Ingame chat for viewers on stream has been erased."
+   api.exec_command(f"clear; say {reply_string}")
+   return None

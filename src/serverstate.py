@@ -31,7 +31,8 @@ PAUSE_STATE = False
 IGNORE_IPS = []
 RECONNECTING = False
 VID_RESTARTING = False
-
+LAST_REPORT_TIME = time.time()
+LAST_INIT_REPORT_TIME = time.time()
 
 class State:
     """
@@ -103,12 +104,10 @@ def start():
 
             prev_state, curr_state = None, None
             initialize_state()  # Handle the first state fetch. Some extra processing needs to be done this time.
-            init_time = time.time()
 
             # Only refresh the STATE object if new data has been read and if state is not paused
-            while not new_report_exists(config.INITIAL_REPORT_P, init_time) and not PAUSE_STATE:
+            while not new_report_exists(config.INITIAL_REPORT_P) and not PAUSE_STATE:
                 time.sleep(1)
-                pre_time = time.time()
                 api.exec_state_command(f'varmath color2 = $chsinfo(152)')  # Store the inputs in the bot's color2 cvar
 
                 if not PAUSE_STATE:
@@ -116,7 +115,7 @@ def start():
                 elif not VID_RESTARTING:
                     raise Exception("Paused.")
 
-                if new_report_exists(config.STATE_REPORT_P, pre_time):
+                if new_report_exists(config.STATE_REPORT_P):
                     # Given that a new report exists, read this new data.
                     server_info, players = get_svinfo_report(config.STATE_REPORT_P)
 
@@ -154,14 +153,13 @@ def initialize_state():
         init_counter = 0
         while server_info is None or bot_player == []:  # Continue running this block until valid data and bot id found
             init_counter += 1
-            init_time = time.time()
             if not PAUSE_STATE:
                 # Set color1 to secret code to determine bot's client id
                 api.exec_state_command(f"seta color1 {secret};silent svinfo_report serverstate.txt")
             else:
                 raise Exception("Paused.")
 
-            if new_report_exists(config.STATE_REPORT_P, init_time):  # New data detected
+            if new_report_exists(config.STATE_REPORT_P):  # New data detected
                 server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read data
                 # Select player that contains this secret as their color1, this will be the bot player.
                 bot_player = [player for player in players if player.c1 == secret]
@@ -276,7 +274,6 @@ def connect(ip):
     """
     global PAUSE_STATE
     global MAP_LOAD_WAIT
-    connection_time = time.time()
     print(f"Connecting to {ip}...")
     PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
@@ -286,7 +283,7 @@ def connect(ip):
     max_wait_time, wait_count = 10, 1
 
     # Loop until a new initial_report.txt is found. (Automatically created on respawn per respawn.cfg)
-    while not new_report_exists(config.INITIAL_REPORT_P, connection_time) and reattempt_count <= max_reattempts:
+    while not new_report_exists(config.INITIAL_REPORT_P) and reattempt_count <= max_reattempts:
         # Respawn file is not found. This is a connection strike.
         print(f"Connection not detected. Strike {wait_count}/{max_wait_time}")
         if wait_count >= max_wait_time:
@@ -322,12 +319,19 @@ def restart_connect(ip):
     api.exec_state_command("connect " + ip)
 
 
-def new_report_exists(path, time_pov):
+def new_report_exists(path):
     """
     Helper function for checking if the report is new relative to a given time stamp.
     """
-    report_mod_time = os.path.getmtime(path)
-    return report_mod_time > time_pov
+    global LAST_INIT_REPORT_TIME, LAST_REPORT_TIME
+    curr_report_mod_time = os.path.getmtime(path)
+    if path == config.INITIAL_REPORT_P:
+        last_report_ts = LAST_INIT_REPORT_TIME
+        LAST_INIT_REPORT_TIME = curr_report_mod_time
+    else:
+        last_report_ts = LAST_REPORT_TIME
+        LAST_REPORT_TIME = curr_report_mod_time
+    return curr_report_mod_time > last_report_ts
 
 
 async def switch_spec(direction='next', channel=None):
@@ -404,7 +408,7 @@ def get_svinfo_report(filename):
 
             if player_data['c1'] != 'nospec': # Filter out nospec'd players out of followable ids
                 players.append(Player(cli_id, player_data))
-                if player_data['t'] == '0':  # Filter out spectators out of followable ids.
+                if player_data['t'] != '3':  # Filter out spectators out of followable ids.
                     spec_ids.append(cli_id)
         except:
             continue
