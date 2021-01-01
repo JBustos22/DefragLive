@@ -1,6 +1,7 @@
 """This file contains all the handling logic for each twitchbot command available to DeFRaG players"""
 
 import api
+import requests
 supported_commands = ["nospec", "info", "help", "howmany", "clear"]
 
 
