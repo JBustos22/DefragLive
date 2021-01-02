@@ -31,6 +31,7 @@ PAUSE_STATE = False
 IGNORE_IPS = []
 RECONNECTING = False
 VID_RESTARTING = False
+STATE_INITIALIZED = False
 LAST_REPORT_TIME = time.time()
 LAST_INIT_REPORT_TIME = time.time()
 
@@ -144,6 +145,7 @@ def initialize_state():
     global STATE
     global PAUSE_STATE
     global INIT_TIMEOUT
+    global STATE_INITIALIZED
 
     try:
         # Create a secret code. Only "secret" for one use.
@@ -175,6 +177,7 @@ def initialize_state():
         # Create global server object
         STATE = State(secret, server_info, players, bot_id)
         STATE.current_player_id = bot_id
+        STATE_INITIALIZED = True
         print("State Initialized.")
     except:
         return False
@@ -278,6 +281,9 @@ def connect(ip):
     """
     global PAUSE_STATE
     global MAP_LOAD_WAIT
+    global STATE_INITIALIZED
+
+    STATE_INITIALIZED = False
     print(f"Connecting to {ip}...")
     PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
@@ -287,7 +293,7 @@ def connect(ip):
     max_wait_time, wait_count = 10, 1
 
     # Loop until a new initial_report.txt is found. (Automatically created on respawn per respawn.cfg)
-    while not new_report_exists(config.INITIAL_REPORT_P) and reattempt_count <= max_reattempts:
+    while (not new_report_exists(config.INITIAL_REPORT_P) and not STATE_INITIALIZED) and reattempt_count <= max_reattempts:
         # Respawn file is not found. This is a connection strike.
         print(f"Connection not detected. Strike {wait_count}/{max_wait_time}")
         if wait_count >= max_wait_time:
