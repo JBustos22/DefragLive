@@ -121,6 +121,15 @@ async def event_message(ctx):
             api.exec_state_command(f"echo ^2---^3The current map is: {serverstate.STATE.mapname}^2---;")
             msg = f"The current map is: {serverstate.STATE.mapname}"
             await ctx.channel.send(msg)
+        elif cmd == "speclist":
+            msg = f"Watchable players:" \
+                  f" {serverstate.STATE.get_specable_players()} " \
+                  f"-- Do ?spec <#> to spectate a specific player, where # is their id number."
+            await ctx.channel.send(msg)
+        elif cmd == "spec":
+            follow_id = args[0]
+            msg = serverstate.spectate_player(follow_id)
+            await ctx.channel.send(msg)
 
         # Mod commands
         elif cmd == "brightness":

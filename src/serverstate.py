@@ -77,6 +77,15 @@ class State:
         bot_player = self.get_player_by_id(self.bot_id)
         return bot_player.c2.replace(' ', '')
 
+    def get_specable_players(self):
+        """Helper function to return a list of speccable players as a human-readable string"""
+        specable_players = ""
+        for spec_id in self.spec_ids:
+            plyr = self.get_player_by_id(spec_id)
+            plyr_string = f" {plyr.n} (id {spec_id}) |"
+            specable_players += plyr_string
+        return f'{specable_players.rstrip("|")}'
+
 
 class Player:
     """
@@ -378,8 +387,24 @@ async def switch_spec(direction='next', channel=None):
             api.exec_command(f"follow {follow_id}")  # Follow this player.
             STATE.idle_counter = 0  # Reset idle strike flag since a followable non-bot id was found.
             STATE.current_player_id = follow_id  # Notify the state object of the new player we are spectating.
+            STATE.afk_counter = 0
 
     return True
+
+
+def spectate_player(follow_id):
+    global IGNORE_IPS
+    IGNORE_IPS = []
+    STATE.afk_list = []
+    if follow_id in STATE.spec_ids:
+        display_player_name(follow_id)
+        api.exec_command(f"follow {follow_id}")  # Follow this player.
+        STATE.idle_counter = 0  # Reset idle strike flag since a followable non-bot id was found.
+        STATE.current_player_id = follow_id  # Notify the state object of the new player we are spectating.
+        STATE.afk_counter = 0
+        return f"Spectating {STATE.get_player_by_id(follow_id).n}"
+    else:
+        return f"Sorry, that player (id {follow_id}) is not available for spectating."
 
 
 def display_player_name(follow_id):
