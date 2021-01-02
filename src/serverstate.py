@@ -393,6 +393,7 @@ async def switch_spec(direction='next', channel=None):
 
 
 def spectate_player(follow_id):
+    """Spectate player chosen by twich users based on their client id"""
     global IGNORE_IPS
     IGNORE_IPS = []
     STATE.afk_list = []
