@@ -271,6 +271,8 @@ def validate_state():
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             STATE.afk_counter = 0
+            print("Activity detected. AFK counter aborted.")
+            api.exec_state_command(f"echo ^2---^3Activity detected. AFK counter aborted.^2---;" * MESSAGE_REPEATS)
             STATE.afk_ids = []
             IGNORE_IPS = []
 
