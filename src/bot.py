@@ -124,7 +124,7 @@ async def event_message(ctx):
         elif cmd == "speclist":
             msg = f"Watchable players:" \
                   f" {serverstate.STATE.get_specable_players()} " \
-                  f"-- Do ?spec <#> to spectate a specific player, where # is their id number."
+                  f"-- Do ?spec # to spectate a specific player, where # is their id number."
             await ctx.channel.send(msg)
         elif cmd == "spec":
             follow_id = args[0]
