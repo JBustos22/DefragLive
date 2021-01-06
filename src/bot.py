@@ -97,6 +97,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind("toggle df_chs1_Info6 0 40"))
         elif cmd == "obs":
             api.press_key(config.get_bind("toggle df_chs1_Info7 0 50"))
+        elif cmd == "drawgun":
+            api.press_key(config.get_bind("toggle cg_drawgun 1 2"))
         elif cmd == "clean":
             api.press_key(config.get_bind_fuzzy("cg_draw2D"))
         elif cmd == "sky":
