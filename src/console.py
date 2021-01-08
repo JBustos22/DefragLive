@@ -18,17 +18,19 @@ LOG = []
 CONSOLE_DISPLAY = []
 FILTERS = ["R_AddMD3Surfaces"]
 WS_Q = queue.Queue()
+STOP_CONSOLE = False
 
 
 def read_tail(thefile):
         '''
         Generator function that yields new lines in a file
         '''
+        global STOP_CONSOLE
         # seek the end of the file
         thefile.seek(0, os.SEEK_END)
         
         # start infinite loop
-        while True:
+        while not STOP_CONSOLE:
             # read last line of file
             line = thefile.readline()
 
@@ -50,10 +52,12 @@ def read(file_path: str):
     global LOG
     global CONSOLE_DISPLAY
     global FILTERS
+    global STOP_CONSOLE
 
     while not os.path.isfile(file_path):
         time.sleep(1)
 
+    STOP_CONSOLE = False
     with open(file_path, 'r') as log:
         new_lines = read_tail(log)
 

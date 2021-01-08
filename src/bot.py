@@ -359,14 +359,18 @@ if __name__ == "__main__":
     while True:
         try:
             api.api_init()
-            time.sleep(10)
+            time.sleep(5)
             if not window_flag:
                 print("Found defrag window.")
                 window_flag = True
+                serverstate.PAUSE_STATE = False
         except api.WindowNotFoundError:
-            if not serverstate.PAUSE_STATE:
+            if not serverstate.VID_RESTARTING:
                 window_flag = False
                 print("Defrag window lost. Restarting...")
                 df_process = Process(target=launch)
                 df_process.start()
-                time.sleep(15)
+                console.STOP_CONSOLE = True
+                time.sleep(12)
+                con_thread = threading.Thread(target=console.read, args=(logfile_path,), daemon=True)
+                con_thread.start()

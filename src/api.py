@@ -42,21 +42,30 @@ def exec_state_command(cmd):
 
 
 def press_key(key, verbose=True):
-    if verbose:
-        print(f"Pressing key {key}")
-    WINDOW.send(key, blocking=True, press_duration=30)
+    try:
+        if verbose:
+            print(f"Pressing key {key}")
+        WINDOW.send(key, blocking=True, press_duration=30)
+    except AttributeError:
+        print(f"Window not active. {key} was not sent to the client.")
 
 
 def press_key_mult(x, amount, delay=0.03, verbose=True):
-    if verbose:
-        print(f"Pressing {x} {amount} times with a delay of {delay}")
-    for _ in range(amount):
-        WINDOW.send(x, blocking=True, press_duration=30)
-        time.sleep(delay)
+    try:
+        if verbose:
+            print(f"Pressing {x} {amount} times with a delay of {delay}")
+        for _ in range(amount):
+            WINDOW.send(x, blocking=True, press_duration=30)
+            time.sleep(delay)
+    except AttributeError:
+        print(f"Window not active. {x} was not sent to the client.")
 
 
 # duration in seconds
 def hold_key(x, duration):
-    print(f"Holding {x} for {duration} seconds")
+    try:
+        print(f"Holding {x} for {duration} seconds")
 
-    WINDOW.send(x, blocking=True, press_duration=duration * 1000)
+        WINDOW.send(x, blocking=True, press_duration=duration * 1000)
+    except AttributeError:
+        print(f"Window not active. {x} was not sent to the client.")
