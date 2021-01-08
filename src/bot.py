@@ -74,7 +74,7 @@ async def event_message(ctx):
         elif cmd in ["prev", "p"]:
             await serverstate.switch_spec('prev', channel=ctx.channel)
         elif cmd == "scores":
-            api.hold_key(config.get_bind("+scores"), 3.5)
+            api.hold_key(config.get_bind("+scores"), 4.5)
         elif cmd == "clear":
             api.press_key(config.get_bind_fuzzy("clear"))
         elif cmd == "reconnect":
@@ -128,6 +128,7 @@ async def event_message(ctx):
                   f" {serverstate.STATE.get_specable_players()} " \
                   f"-- Do ?spec # to spectate a specific player, where # is their id number."
             await ctx.channel.send(msg)
+            api.hold_key(config.get_bind("+scores"), 4.5)
         elif cmd == "spec":
             follow_id = args[0]
             msg = serverstate.spectate_player(follow_id)
