@@ -73,10 +73,10 @@ async def event_message(ctx):
             await serverstate.switch_spec('next', channel=ctx.channel)
         elif cmd in ["prev", "p"]:
             await serverstate.switch_spec('prev', channel=ctx.channel)
-        elif cmd == "scores":
+        elif cmd in ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"]:
             api.hold_key(config.get_bind("+scores"), 4.5)
         elif cmd == "clear":
-            api.press_key(config.get_bind_fuzzy("clear"))
+            api.press_key(config.get_bind("clear;echo Someone said something bad"))
         elif cmd == "reconnect":
             serverstate.connect(serverstate.STATE.ip)
         elif cmd == "triggers":
@@ -113,8 +113,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
         elif cmd == "speedorig":
             api.press_key(config.get_bind_fuzzy("df_drawSpeed"))
-        elif cmd == "huds":
-            api.press_key(config.get_bind("toggle mdd_hud 0 1"))
+        elif cmd == "thirdperson":
+            api.press_key(config.get_bind("toggle cg_thirdperson 0 1"))
         elif cmd == "inputs":
             api.press_key(config.get_bind_fuzzy("df_chs0_draw"))
         elif cmd == "n1":
