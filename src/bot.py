@@ -115,6 +115,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("df_drawSpeed"))
         elif cmd == "thirdperson":
             api.press_key(config.get_bind("toggle cg_thirdperson 0 1"))
+        elif cmd == "miniview":
+            api.press_key(config.get_bind_fuzzy("toggle df_ghosts_MiniviewDraw"))
         elif cmd == "inputs":
             api.press_key(config.get_bind_fuzzy("df_chs0_draw"))
         elif cmd == "n1":
