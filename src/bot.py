@@ -110,7 +110,7 @@ async def event_message(ctx):
                 arg = args[0]
             api.press_key(config.get_bind(f"vote {arg}"))
         elif cmd == "speedinfo":
-            api.press_key(config.get_bind("toggle df_chs1_Info5 0 1"))
+            api.press_key(config.get_bind("toggle df_chs1_Info5 0 23"))
         elif cmd == "speedorig":
             api.press_key(config.get_bind_fuzzy("df_drawSpeed"))
         elif cmd == "thirdperson":
