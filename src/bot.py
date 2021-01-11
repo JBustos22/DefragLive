@@ -182,6 +182,18 @@ async def event_message(ctx):
         print("Chat message sent")
         time.sleep(debounce)
 
+    elif message.startswith("**"):  # chat bridge
+        if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
+            author = ''
+            author_color_char = 0
+        else:
+            author += ' ^7> '
+            author_color_char = author[0]
+        message = message.lstrip('**')
+        api.exec_command(f"say_team ^{author_color_char}{author} ^5{message}")
+        print("Chat message sent")
+        time.sleep(debounce)
+
     elif message.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
         print("proxy command received")
         api.exec_command(message)
