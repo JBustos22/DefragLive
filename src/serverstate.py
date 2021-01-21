@@ -87,6 +87,15 @@ class State:
             specable_players += plyr_string
         return f'{specable_players.rstrip("|")}'
 
+    def get_nospec_players(self):
+        """Helper function to return a list of nospec players as a human-readable string"""
+        nospec_players = ""
+        for spec_id in self.nospec_ids:
+            plyr = self.get_player_by_id(spec_id)
+            plyr_string = f" {plyr.n} |"
+            nospec_players += plyr_string
+        return f'{nospec_players.rstrip("|")}'
+
 
 class Player:
     """
@@ -237,7 +246,7 @@ def validate_state():
 
         if follow_id != STATE.bot_id:  # Found someone successfully, follow this person
             if spectating_nospec:
-                if not PAUSE_STATE:
+                if not PAUSE_STATE and not spectating_self:
                     print('Nospec detected. Switching...')
                     api.exec_state_command("echo ^2---^3Player with no-spec detected. "
                                            "Switching to the next player.^2---;" * MESSAGE_REPEATS)
@@ -439,7 +448,7 @@ def get_svinfo_report(filename):
         else:
             time.sleep(5)
             return None, None
-        players, spec_ids = [], []
+        players, spec_ids, nospec_ids = [], [], []
 
     for header in info:
         try:
@@ -447,14 +456,17 @@ def get_svinfo_report(filename):
             cli_id = match.group(1)
             player_data = info[header]
 
-            if player_data['c1'] != 'nospec': # Filter out nospec'd players out of followable ids
-                players.append(Player(cli_id, player_data))
-                if player_data['t'] != '3':  # Filter out spectators out of followable ids.
+            players.append(Player(cli_id, player_data))
+            if player_data['t'] != '3':  # Filter out spectators out of followable ids.
+                if player_data['c1'] != 'nospec':  # Filter out nospec'd players out of followable ids
                     spec_ids.append(cli_id)
+                else:
+                    nospec_ids.append(cli_id)
         except:
             continue
 
     server_info['spec_ids'] = spec_ids
+    server_info['nospec_ids'] = nospec_ids
     return server_info, players
 
 

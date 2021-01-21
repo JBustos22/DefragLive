@@ -135,9 +135,21 @@ async def event_message(ctx):
                   f"-- Do ?spec # to spectate a specific player, where # is their id number."
             await ctx.channel.send(msg)
             api.hold_key(config.get_bind("+scores"), 4.5)
+
+            if len(serverstate.STATE.nospec_ids) > 0:
+                nospec_msg = f"NOTE: " \
+                       f"The following player{'s' if len(serverstate.STATE.nospec_ids) > 1 else ''} " \
+                       f"{'have' if len(serverstate.STATE.nospec_ids) > 1 else 'has'} disabled spec permissions: " \
+                       f"{serverstate.STATE.get_nospec_players()}"
+                await ctx.channel.send(nospec_msg)
+
         elif cmd == "spec":
             follow_id = args[0]
             msg = serverstate.spectate_player(follow_id)
+            await ctx.channel.send(msg)
+
+        elif cmd == "server" or "sv":
+            msg = f"The current server is \"{serverstate.STATE.hostname}\" ({serverstate.STATE.ip})"
             await ctx.channel.send(msg)
 
         # Mod commands
