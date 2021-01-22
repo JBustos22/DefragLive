@@ -148,7 +148,7 @@ async def event_message(ctx):
             msg = serverstate.spectate_player(follow_id)
             await ctx.channel.send(msg)
 
-        elif cmd == "server" or "sv":
+        elif cmd == "server" or cmd == "sv":
             msg = f"The current server is \"{serverstate.STATE.hostname}\" ({serverstate.STATE.ip})"
             await ctx.channel.send(msg)
 
