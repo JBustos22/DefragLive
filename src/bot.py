@@ -159,7 +159,7 @@ async def event_message(ctx):
                 return
             value = args[0]
             if value.isdigit() and (0 < int(value) <= 5):
-                api.exec_command(f"r_mapoverbrightbits {value};vid_restart")
+                api.exec_command(f"r_mapoverbrightbits {value};vid_restart;clear")
             else:
                 await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
         elif cmd == "picmip":
@@ -168,7 +168,7 @@ async def event_message(ctx):
                 return
             value = args[0]
             if value.isdigit() and (0 <= int(value) <= 6):
-                api.exec_command(f"r_picmip {value};vid_restart")
+                api.exec_command(f"r_picmip {value};vid_restart;clear")
             else:
                 await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
 
