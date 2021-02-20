@@ -175,7 +175,7 @@ async def event_message(ctx):
             else:
                 await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
 
-        # Currently disabled. Possibly useful for the future:
+        # Disabled. Possibly useful for the future:
 
         # elif cmd == "cgaz":
         #     mode = args[0] if len(args) > 0 and 0 < int(args[0]) <= 15 else "toggle"
