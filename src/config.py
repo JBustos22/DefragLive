@@ -23,13 +23,6 @@ IP_WHITELIST = {
     "139.180.168.2", "aus.defrag.rocks"
 }
 
-blacklist_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'blacklist.txt')
-with open(blacklist_path, "r") as word_file:
-    list_of_lists = []
-    for line in word_file:
-        stripped_line = line.strip()
-        BLACKLISTED_WORDS.append(stripped_line)
-
 
 def get_bind(cmd):
     global BINDS
@@ -89,3 +82,13 @@ def validate_cfg():
             BINDS[cmd] = "{Tab}"
         else:
             pass
+
+
+def get_list(list):
+    list_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lists', list)
+    wordlist = []
+    with open(list_path, "r") as list_file:
+        for line in list_file:
+            stripped_line = line.strip()
+            wordlist.append(stripped_line)
+    return wordlist

@@ -50,7 +50,7 @@ async def event_message(ctx):
         split_msg = message.split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
-        print("Command received:", cmd)
+        print(f"TWITCH COMMAND RECEIVED: '{cmd}' from user '{author}'")
 
         if cmd in ["connect", "c"]:
             ip = args[0]
@@ -187,25 +187,41 @@ async def event_message(ctx):
         time.sleep(debounce)
 
     elif message.startswith(">") or message.startswith("<"):  # chat bridge
+        message = message.lstrip('>').lstrip('<').lstrip(' ')
+        blacklisted_words = config.get_list("blacklist_chat")
+
+        for word in blacklisted_words:
+            if word in message:
+                print(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                return
+
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
             author = ''
             author_color_char = 0
         else:
             author += ' ^7> '
             author_color_char = author[0]
-        message = message.lstrip('>').lstrip('<')
+
         api.exec_command(f"say ^{author_color_char}{author} ^2{message}")
         print("Chat message sent")
         time.sleep(debounce)
 
-    elif message.startswith("**"):  # chat bridge
+    elif message.startswith("**"):  # team chat bridge
+        message = message.lstrip('**')
+        blacklisted_words = config.get_list("blacklist_chat")
+
+        for word in blacklisted_words:
+            if word in message:
+                print(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                return
+
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
             author = ''
             author_color_char = 0
         else:
             author += ' ^7> '
             author_color_char = author[0]
-        message = message.lstrip('**')
+
         api.exec_command(f"say_team ^{author_color_char}{author} ^5{message}")
         print("Chat message sent")
         time.sleep(debounce)
