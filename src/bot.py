@@ -154,8 +154,10 @@ async def event_message(ctx):
 
         # Mod commands
         elif cmd == "brightness":
-            if not ctx.author.is_mod:
-                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command.")
+            whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
+            if author not in whitelisted_twitch_users and not ctx.author.is_mod:
+                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command. "
+                                       f"Please message the broadcaster or a moderator.")
                 return
             value = args[0]
             if value.isdigit() and (0 < int(value) <= 5):
@@ -163,7 +165,8 @@ async def event_message(ctx):
             else:
                 await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
         elif cmd == "picmip":
-            if not ctx.author.is_mod:
+            whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
+            if author not in whitelisted_twitch_users and not ctx.author.is_mod:
                 await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command.")
                 return
             value = args[0]
