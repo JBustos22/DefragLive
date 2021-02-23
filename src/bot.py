@@ -54,7 +54,7 @@ async def event_message(ctx):
 
         if cmd in ["connect", "c"]:
             ip = args[0]
-            if ip.split(':')[0] not in config.IP_WHITELIST:
+            if ip.split(':')[0] not in config.get_list("whitelist_servers"):
                 msg = f"Server \"{ip}\" is not whitelisted. Refusing connection."
                 api.exec_command(f"echo ^1{msg};")
                 print(msg)

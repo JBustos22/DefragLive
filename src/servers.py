@@ -61,7 +61,15 @@ def get_most_popular_server(ignore_ip=None):
 
 
 def get_next_active_server(ignore_list):
-    servers_data = scrape_servers_data()
+    from config import get_list
+    server_data = scrape_servers_data()
+
+    filtered_server_data = dict()
+    for sv_key, sv_data in server_data.items():
+        if server_data[sv_key]['state']['ip'].split(':')[0] not in get_list('whitelist_servers'):
+            filtered_server_data[sv_key][sv_data] = sv_data
+
+    server_data = filtered_server_data
     for ignore_ip in ignore_list:
         ignore_ip = ignore_ip.replace('defrag.rocks', '140.82.4.154').replace('q3df.ru', '83.243.73.220')
         if ':' not in ignore_ip:
@@ -70,7 +78,7 @@ def get_next_active_server(ignore_list):
     max_plyr_qty = 0
     max_plyr_ip = ""
 
-    for id, server in servers_data.items():
+    for id, server in server_data.items():
         if server["players_qty"] > max_plyr_qty and server['state']['ip'] not in ignore_list:
             max_plyr_qty = server["players_qty"]
             max_plyr_ip = server["state"]["ip"]

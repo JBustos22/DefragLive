@@ -14,14 +14,6 @@ STATE_REPORT_P = os.path.join(DF_DIR, "system", "reports", environ["SVINFO_REPOR
 INITIAL_REPORT_P = os.path.join(DF_DIR, "system", "reports", "initialstate.txt")
 
 BINDS = None
-BLACKLISTED_WORDS = []
-
-IP_WHITELIST = {
-    "91.121.153.32",
-    "83.243.73.220", "q3df.ru",
-    "140.82.4.154", "defrag.rocks",
-    "139.180.168.2", "aus.defrag.rocks"
-}
 
 
 def get_bind(cmd):
