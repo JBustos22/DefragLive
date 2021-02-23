@@ -425,8 +425,8 @@ def display_player_name(follow_id):
     follow_player = STATE.get_player_by_id(follow_id)
     if follow_player is not None:
         player_name = follow_player.n
-        display_name = player_name if player_name.strip() not in config.BLACKLISTED_WORDS else "*" * len(player_name)
-        # api.exec_state_command(f"set player-name {display_name}")
+        display_name = player_name if player_name.strip() not in config.get_list('blacklist_names') else "*" * len(player_name)
+        # api.exec_state_command(f"set player-name {display_name}") # uncomment to censor blacklisted names
 
 
 def get_svinfo_report(filename):
