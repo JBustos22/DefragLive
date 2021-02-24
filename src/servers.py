@@ -66,8 +66,8 @@ def get_next_active_server(ignore_list):
 
     filtered_server_data = dict()
     for sv_key, sv_data in server_data.items():
-        if server_data[sv_key]['state']['ip'].split(':')[0] not in get_list('whitelist_servers'):
-            filtered_server_data[sv_key][sv_data] = sv_data
+        if server_data[sv_key]['state']['ip'].split(':')[0] in get_list('whitelist_servers'):
+            filtered_server_data[sv_key] = sv_data
 
     server_data = filtered_server_data
     for ignore_ip in ignore_list:
