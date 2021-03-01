@@ -2,7 +2,7 @@
 
 import api
 import requests
-supported_commands = ["nospec", "info", "help", "howmany", "clear"]
+supported_commands = ["nospec", "info", "help", "howmany", "clear", "discord"]
 
 
 def scan_for_command(message):
@@ -20,7 +20,7 @@ def scan_for_command(message):
 # The following are all the handler functions. They each take in line_data and return None
 
 def handle_help(line_data):
-    reply_string = "^7Current commands are ^3?^7nospec, ^3?^7info, ^3?^7help, ^3?^7clear, and ^3?^7howmany"
+    reply_string = "^7Current commands are ^3?^7nospec, ^3?^7info, ^3?^7help, ^3?^7clear, ^3?^7discord and ^3?^7howmany"
     api.exec_command(f"say {reply_string}")
     return None
 
@@ -57,4 +57,10 @@ def handle_howmany(line_data):
 def handle_clear(line_data):
    reply_string = "^7Ingame chat for viewers has been ^1erased."
    api.exec_command(f"clear; say {reply_string}")
+   return None
+
+
+def handle_discord(line_data):
+   reply_string = "^7Join our discord: ^3discord.gg/ZG4dKNVQJu"
+   api.exec_command(f"say {reply_string}")
    return None
