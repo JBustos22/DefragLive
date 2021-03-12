@@ -123,6 +123,8 @@ async def event_message(ctx):
             api.press_key(config.get_bind_fuzzy("toggle df_ghosts_MiniviewDraw"))
         elif cmd == "inputs":
             api.press_key(config.get_bind_fuzzy("df_chs0_draw"))
+        elif cmd == "slick":
+            api.exec_command(f"toggle r_renderSlickSurfaces 0 1")
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
         elif cmd == "map":
