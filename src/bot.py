@@ -154,7 +154,7 @@ async def event_message(ctx):
             msg = f"The current server is \"{serverstate.STATE.hostname}\" ({serverstate.STATE.ip})"
             await ctx.channel.send(msg)
 
-        # Mod commands
+        # Mod commands, 166 ;wait; needs to stay, otherwise error msg appears and cl_noprint 1 is somehow triggered
         elif cmd == "brightness":
             whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
             if author not in whitelisted_twitch_users and not ctx.author.is_mod:
@@ -163,7 +163,7 @@ async def event_message(ctx):
                 return
             value = args[0]
             if value.isdigit() and (0 < int(value) <= 5):
-                api.exec_command(f"r_mapoverbrightbits {value};vid_restart;clear")
+                api.exec_command(f"r_mapoverbrightbits {value};vid_restart;wait 10;clear")
             else:
                 await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
         elif cmd == "picmip":
