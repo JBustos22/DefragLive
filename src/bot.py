@@ -80,9 +80,9 @@ async def event_message(ctx):
         elif cmd == "reconnect":
             serverstate.connect(serverstate.STATE.ip)
         elif cmd == "triggers":
-            api.press_key(config.get_bind_fuzzy("scr_triggers_draw"))
+            api.exec_command(f"toggle r_rendertriggerBrushes 0 1")
         elif cmd == "clips":
-            api.press_key(config.get_bind_fuzzy("scr_clips_draw"))
+            api.exec_command(f"toggle r_renderClipBrushes 0 1")
         elif cmd == "lagometer":
             api.press_key(config.get_bind_fuzzy("lagometer"))
         elif cmd == "snaps":
@@ -128,7 +128,7 @@ async def event_message(ctx):
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
         elif cmd == "map":
-            api.exec_state_command(f"echo ^2---^3The current map is: {serverstate.STATE.mapname}^2---;")
+            api.exec_state_command(f"displaymessage 100 20 ^2---^3The current map is: {serverstate.STATE.mapname}^2---;")
             msg = f"The current map is: {serverstate.STATE.mapname}"
             await ctx.channel.send(msg)
         elif cmd == "speclist":
