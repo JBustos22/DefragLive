@@ -56,7 +56,7 @@ async def event_message(ctx):
             ip = args[0]
             if ip.split(':')[0] not in config.get_list("whitelist_servers"):
                 msg = f"Server \"{ip}\" is not whitelisted. Refusing connection."
-                api.exec_command(f"displaymessage 140 8 ^1{msg};")
+                api.exec_command(f"cg_centertime 5;displaymessage 140 8 ^3{author} ^1{msg};")
                 print(msg)
                 await ctx.channel.send(msg)
                 return
@@ -78,29 +78,29 @@ async def event_message(ctx):
         elif cmd == "reconnect":
             serverstate.connect(serverstate.STATE.ip)
         elif cmd == "triggers":
-            api.exec_command(f"toggle r_rendertriggerBrushes 0 1")
+            api.exec_command(f"toggle r_rendertriggerBrushes 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Render Triggers")
         elif cmd == "clips":
-            api.exec_command(f"toggle r_renderClipBrushes 0 1")
+            api.exec_command(f"toggle r_renderClipBrushes 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Render Clips")
         elif cmd == "clear":
-            api.exec_command(f"clear;displaymessage 140 12 ^1Ingame chat has been erased ^3:(")
+            api.exec_command(f"clear;cg_centertime 3;cg_centertime 3;displaymessage 140 12 ^3{author} ^1Ingame chat has been erased ^3:(")
         elif cmd == "lagometer":
-            api.exec_command(f"toggle cg_lagometer 0 1")
+            api.exec_command(f"toggle cg_lagometer 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Lagometer")
         elif cmd == "snaps":
-            api.exec_command(f"toggle mdd_snap 0 3")
+            api.exec_command(f"toggle mdd_snap 0 3;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3snaps hud")
         elif cmd == "cgaz":
-            api.exec_command(f"toggle mdd_cgaz 0 1")
+            api.exec_command(f"toggle mdd_cgaz 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Cgaz hud")
         elif cmd == "nodraw":
-            api.exec_command(f"toggle df_mp_NoDrawRadius 100 100000")
+            api.exec_command(f"toggle df_mp_NoDrawRadius 100 100000;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Players visibility")
         elif cmd == "angles":
-            api.exec_command(f"toggle df_chs1_Info6 0 40")
+            api.exec_command(f"toggle df_chs1_Info6 0 40;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Weapon angles")
         elif cmd == "obs":
-            api.exec_command(f"toggle df_chs1_Info7 0 50")
+            api.exec_command(f"toggle df_chs1_Info7 0 50;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3OverBounces")
         elif cmd == "drawgun":
-            api.exec_command(f"toggle cg_drawgun 1 2")
+            api.exec_command(f"toggle cg_drawgun 1 2;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Gun movement")
         elif cmd == "clean":
-            api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1")
+            api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Clean POV")
         elif cmd == "sky":
-            api.exec_command(f"toggle r_fastsky 0 1")
+            api.exec_command(f"toggle r_fastsky 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Sky")
         elif cmd in ["vote", "f1", "f2"]:
             if cmd != "vote":
                 arg = "yes" if cmd == "f1" else "no"
@@ -108,25 +108,25 @@ async def event_message(ctx):
                 arg = args[0]
             api.press_key(config.get_bind(f"vote {arg}"))
         elif cmd == "speedinfo":
-            api.exec_command(f"toggle df_chs1_Info5 0 23")
+            api.exec_command(f"toggle df_chs1_Info5 0 23;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Speedometer (chs info)")
         elif cmd == "speedorig":
-            api.exec_command(f"toggle df_drawSpeed 0 1")
+            api.exec_command(f"toggle df_drawSpeed 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Speedometer (hud element)")
         elif cmd == "gibs":
-            api.exec_command(f"toggle cg_gibs 0 1")
+            api.exec_command(f"toggle cg_gibs 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Gibs after kill")
         elif cmd == "blood":
-            api.exec_command(f"toggle com_blood 0 1")
+            api.exec_command(f"toggle com_blood 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Blood after kill")
         elif cmd == "thirdperson":
-            api.exec_command(f"toggle cg_thirdperson 0 1")
+            api.exec_command(f"toggle cg_thirdperson 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Thirdperson\n POV")
         elif cmd == "miniview":
-            api.exec_command(f"toggle df_ghosts_MiniviewDraw 0 6")
+            api.exec_command(f"toggle df_ghosts_MiniviewDraw 0 6;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Miniview")
         elif cmd == "inputs":
-            api.exec_command(f"toggle df_chs0_draw 0 1")
+            api.exec_command(f"toggle df_chs0_draw 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Inputs (WASD...)")
         elif cmd == "slick":
-            api.exec_command(f"toggle r_renderSlickSurfaces 0 1")
+            api.exec_command(f"toggle r_renderSlickSurfaces 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Slick highlighted")
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
         elif cmd == "map":
-            api.exec_state_command(f"displaymessage 140 12 ^2---^3The current map is: {serverstate.STATE.mapname}^2---;")
+            api.exec_state_command(f"cg_centertime 4;displaymessage 140 12 ^7The current map is: ^3{serverstate.STATE.mapname};")
             msg = f"The current map is: {serverstate.STATE.mapname}"
             await ctx.channel.send(msg)
         elif cmd == "speclist":
