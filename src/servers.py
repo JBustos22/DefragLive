@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 def scrape_servers_data():
     """ Obtains data from q3df.org/servers using web scraping"""
     url = f'https://q3df.org/serverlist'
-    r = requests.get(url)
+    r = requests.get(url, verify=False)
     soup = BeautifulSoup(r.text, 'html.parser')
     server_ids = [ele.get('id').split('_')[-1] for ele in soup.findAll('div', {'class': 'server-item shadow'})]
     server_names = [ele.text for ele in soup.findAll('div', {'class': 'server-head'})]

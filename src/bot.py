@@ -71,8 +71,10 @@ async def event_message(ctx):
             serverstate.connect(connect_ip)
         elif cmd in ["next", "n"]:
             await serverstate.switch_spec('next', channel=ctx.channel)
+            api.exec_command(f"cg_centertime 2;displaymessage 140 12 ^3{author} ^7has switched to ^3Next player")
         elif cmd in ["prev", "p"]:
             await serverstate.switch_spec('prev', channel=ctx.channel)
+            api.exec_command(f"cg_centertime 2;displaymessage 140 12 ^3{author} ^7has switched to ^3Previous player")
         elif cmd in ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"]:
             api.hold_key(config.get_bind("+scores"), 4.5)
         elif cmd == "reconnect":
