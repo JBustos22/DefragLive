@@ -109,6 +109,7 @@ async def event_message(ctx):
             else:
                 arg = args[0]
             api.press_key(config.get_bind(f"vote {arg}"))
+            api.exec_command(f"say ^3{author} ^7voted ^3{arg};cg_centertime 3;displaymessage 140 12 ^3{author} ^7voted ^3{arg}")
         elif cmd == "speedinfo":
             api.exec_command(f"toggle df_chs1_Info5 0 23;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Speedometer (chs info)")
         elif cmd == "speedorig":
@@ -149,6 +150,7 @@ async def event_message(ctx):
             follow_id = args[0]
             msg = serverstate.spectate_player(follow_id)
             await ctx.channel.send(msg)
+            api.exec_state_command(f"cg_centertime 3;varcommand displaymessage 140 12 ^3{author} ^7has switched to $chsinfo(117)")
 
         elif cmd == "server" or cmd == "sv":
             msg = f"The current server is \"{serverstate.STATE.hostname}\" ({serverstate.STATE.ip})"
