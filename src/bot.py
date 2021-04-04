@@ -89,6 +89,8 @@ async def event_message(ctx):
             api.exec_command(f"toggle cg_lagometer 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Lagometer")
         elif cmd == "snaps":
             api.exec_command(f"toggle mdd_snap 0 3;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3snaps hud")
+        elif cmd == "fixchat":
+            api.exec_command(f"cl_noprint 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has fixed: ^3ingame chat")
         elif cmd == "cgaz":
             api.exec_command(f"toggle mdd_cgaz 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Cgaz hud")
         elif cmd == "nodraw":
