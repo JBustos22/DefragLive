@@ -113,18 +113,13 @@ def process_line(line):
             serverstate.PAUSE_STATE = True
             print("Game is loading. Pausing state.")
 
-    if line in {"RE_Shutdown( 1 )"}:
-        print("Vid Restarting. Pausing state.")
-        serverstate.PAUSE_STATE = True
-        serverstate.VID_RESTARTING = True
-
     if 'Com_TouchMemory' in line or "entered the game." in line:
         if serverstate.RECONNECTING:
             time.sleep(2)
             serverstate.RECONNECTING = False
         elif serverstate.VID_RESTARTING:
             time.sleep(2)
-            print("Done.")
+            print("vid_restart done.")
             serverstate.VID_RESTARTING = False
         elif serverstate.PAUSE_STATE:
             time.sleep(serverstate.MAP_LOAD_WAIT)
