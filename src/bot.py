@@ -152,6 +152,7 @@ async def event_message(ctx):
             follow_id = args[0]
             msg = serverstate.spectate_player(follow_id)
             await ctx.channel.send(msg)
+            time.sleep(1)
             api.exec_state_command(f"cg_centertime 3;varcommand displaymessage 140 12 ^3{author} ^7has switched to $chsinfo(117)")
 
         elif cmd == "server" or cmd == "sv":
@@ -163,7 +164,7 @@ async def event_message(ctx):
             whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
             if author not in whitelisted_twitch_users and not ctx.author.is_mod:
                 await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command. "
-                                       f"Please message the broadcaster or a moderator.")
+                                       f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
                 return
             value = args[0]
             if value.isdigit() and (0 < int(value) <= 5):
@@ -175,7 +176,8 @@ async def event_message(ctx):
         elif cmd == "picmip":
             whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
             if author not in whitelisted_twitch_users and not ctx.author.is_mod:
-                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command.")
+                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command."
+                                       f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
                 return
             value = args[0]
             if value.isdigit() and (0 <= int(value) <= 6):
