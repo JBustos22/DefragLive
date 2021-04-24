@@ -395,8 +395,8 @@ if __name__ == "__main__":
     config.read_cfg()
     window_flag = False
     twitchbot_logfile =f'{datetime.now().strftime("%m-%d-%Y_%H-%M-%S")}_twitchbot.log'
-    twitchbot_logpath = list(pathlib.Path(__file__).parent.parent.parts) + ['logs'] + [twitchbot_logfile]
-    file_handler = logging.FileHandler(filename=os.path.join(*twitchbot_logpath))
+    twitchbot_logpath = list(pathlib.Path(__file__).parent.parts) + [twitchbot_logfile]
+    file_handler = logging.FileHandler(filename=os.path.join(*twitchbot_logpath).replace('src','logs'))
     stdout_handler = logging.StreamHandler(sys.stdout)
     handlers = [file_handler, stdout_handler]
     logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S', level=logging.INFO, handlers=handlers)
