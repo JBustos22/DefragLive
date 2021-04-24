@@ -2,6 +2,7 @@ import os
 import time
 import keyboard
 from pywinauto import application
+import logging
 
 from ahk import AHK
 
@@ -26,7 +27,7 @@ def api_init():
 
 def exec_command(cmd, verbose=True):
     if verbose:
-        print(f"Execing command {cmd}")
+        logging.info(f"Execing command {cmd}")
 
     with open(os.path.join(config.DF_DIR, 'twitch_cmd.cfg'), "w+") as f:
         f.write(cmd)
@@ -44,28 +45,28 @@ def exec_state_command(cmd):
 def press_key(key, verbose=True):
     try:
         if verbose:
-            print(f"Pressing key {key}")
+            logging.info(f"Pressing key {key}")
         WINDOW.send(key, blocking=True, press_duration=30)
     except AttributeError:
-        print(f"Window not active. {key} was not sent to the client.")
+        logging.info(f"Window not active. {key} was not sent to the client.")
 
 
 def press_key_mult(x, amount, delay=0.03, verbose=True):
     try:
         if verbose:
-            print(f"Pressing {x} {amount} times with a delay of {delay}")
+            logging.info(f"Pressing {x} {amount} times with a delay of {delay}")
         for _ in range(amount):
             WINDOW.send(x, blocking=True, press_duration=30)
             time.sleep(delay)
     except AttributeError:
-        print(f"Window not active. {x} was not sent to the client.")
+        logging.info(f"Window not active. {x} was not sent to the client.")
 
 
 # duration in seconds
 def hold_key(x, duration):
     try:
-        print(f"Holding {x} for {duration} seconds")
+        logging.info(f"Holding {x} for {duration} seconds")
 
         WINDOW.send(x, blocking=True, press_duration=duration * 1000)
     except AttributeError:
-        print(f"Window not active. {x} was not sent to the client.")
+        logging.info(f"Window not active. {x} was not sent to the client.")

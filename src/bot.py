@@ -14,6 +14,9 @@ import asyncio
 import websockets
 import json
 from multiprocessing import Process
+import logging
+from datetime import datetime
+import sys
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
@@ -29,7 +32,7 @@ bot = commands.Bot(
 @bot.event
 async def event_ready():
     """Called once when the bot goes online."""
-    print(f"{environ['BOT_NICK']} is online!")
+    logging.info(f"{environ['BOT_NICK']} is online!")
     ws = bot._ws  # this is only needed to send messages within event_ready
     await ws.send_privmsg(df_channel, f"/me has landed!")
 
@@ -50,14 +53,14 @@ async def event_message(ctx):
         split_msg = message.split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
-        print(f"TWITCH COMMAND RECEIVED: '{cmd}' from user '{author}'")
+        logging.info(f"TWITCH COMMAND RECEIVED: '{cmd}' from user '{author}'")
 
         if cmd in ["connect", "c"]:
             ip = args[0]
             if ip.split(':')[0] not in config.get_list("whitelist_servers"):
                 msg = f"Server \"{ip}\" is not whitelisted. Refusing connection."
                 api.exec_command(f"cg_centertime 5;displaymessage 140 8 ^3{author} ^1{msg};")
-                print(msg)
+                logging.info(msg)
                 await ctx.channel.send(msg)
                 return
             serverstate.connect(ip)
@@ -168,7 +171,7 @@ async def event_message(ctx):
                 return
             value = args[0]
             if value.isdigit() and (0 < int(value) <= 5):
-                print("vid_restarting...")
+                logging.info("vid_restarting...")
                 serverstate.VID_RESTARTING = True
                 api.exec_command(f"r_mapoverbrightbits {value};vid_restart")
             else:
@@ -181,7 +184,7 @@ async def event_message(ctx):
                 return
             value = args[0]
             if value.isdigit() and (0 <= int(value) <= 6):
-                print("vid_restarting..")
+                logging.info("vid_restarting..")
                 serverstate.VID_RESTARTING = True
                 api.exec_command(f"r_picmip {value};vid_restart")
             else:
@@ -207,7 +210,7 @@ async def event_message(ctx):
 
         for word in blacklisted_words:
             if word in message:
-                print(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                logging.info(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
                 return
 
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
@@ -218,7 +221,7 @@ async def event_message(ctx):
             author_color_char = author[0]
 
         api.exec_command(f"say ^{author_color_char}{author} ^2{message}")
-        print("Chat message sent")
+        logging.info("Chat message sent")
         time.sleep(debounce)
 
     elif message.startswith("**"):  # team chat bridge
@@ -227,7 +230,7 @@ async def event_message(ctx):
 
         for word in blacklisted_words:
             if word in message:
-                print(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                logging.info(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
                 return
 
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
@@ -238,11 +241,11 @@ async def event_message(ctx):
             author_color_char = author[0]
 
         api.exec_command(f"say_team ^{author_color_char}{author} ^5{message}")
-        print("Chat message sent")
+        logging.info("Chat message sent")
         time.sleep(debounce)
 
     elif message.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
-        print("proxy command received")
+        logging.info("proxy command received")
         api.exec_command(message)
         time.sleep(debounce)
 
@@ -253,7 +256,7 @@ def launch():
     launch_ip = servers.get_most_popular_server()
 
     if not os.path.isfile(config.DF_EXE_PATH):
-        print("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
+        logging.info("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
         return None
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
@@ -324,7 +327,7 @@ def on_ws_message(msg):
     try:
         message = json.loads(msg)
     except Exception as e:
-        print('ERROR [on_ws_message]:', e)
+        logging.info('ERROR [on_ws_message]:', e)
         return
 
     # if there is no origin, exit
@@ -342,7 +345,7 @@ def on_ws_message(msg):
             message_text = message_text[:message_text.index(";")]
 
         if message_text.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
-            print("proxy command received")
+            logging.info("proxy command received")
             api.exec_command(message_text)
             time.sleep(1)
         else:
@@ -368,8 +371,8 @@ async def ws_send(uri, q):
                         await websocket.send(msg)
             except:
                 if(websocket.closed):
-                    print('\nDisconnected from WS server?')
-                    print('Trying reconnect. Please check if the websocket server is running!\n')
+                    logging.info('\nDisconnected from WS server?')
+                    logging.info('Trying reconnect. Please check if the websocket server is running!\n')
                     websocket = websockets.connect(uri)
                     
                 await asyncio.sleep(1)
@@ -380,8 +383,8 @@ def ws_worker(q, loop):
     try:
         loop.run_until_complete(ws_send(config.WS_ADDRESS, q))
     except websockets.exceptions.WebSocketException as e:
-        print('\nWebsocket error:', e)
-        print('Please check if the websocket server is running!\n')
+        logging.info('\nWebsocket error:', e)
+        logging.info('Please check if the websocket server is running!\n')
         time.sleep(1)
     finally:
         ws_worker(q, loop)
@@ -391,12 +394,18 @@ if __name__ == "__main__":
     config.read_cfg()
     window_flag = False
 
+    twitchbot_logfile = __file__.replace("src/bot.py", f'logs/{datetime.now().strftime("%m-%d-%Y_%H-%M-%S")}_twitchbot.log')
+    file_handler = logging.FileHandler(filename=twitchbot_logfile)
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    handlers = [file_handler, stdout_handler]
+    logging.basicConfig(format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S', level=logging.INFO, handlers=handlers)
+
     try:
         api.api_init()
         window_flag = True
-        print("Found defrag window.")
+        logging.info("Found defrag window.")
     except:
-        print("Defrag not running, starting...")
+        logging.info("Defrag not running, starting...")
         df_process = Process(target=launch)
         df_process.start()
         time.sleep(15)
@@ -425,13 +434,13 @@ if __name__ == "__main__":
             api.api_init()
             time.sleep(5)
             if not window_flag:
-                print("Found defrag window.")
+                logging.info("Found defrag window.")
                 window_flag = True
                 serverstate.PAUSE_STATE = False
         except api.WindowNotFoundError:
             if not serverstate.VID_RESTARTING:
                 window_flag = False
-                print("Defrag window lost. Restarting...")
+                logging.info("Defrag window lost. Restarting...")
                 df_process = Process(target=launch)
                 df_process.start()
                 console.STOP_CONSOLE = True

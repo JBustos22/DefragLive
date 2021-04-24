@@ -12,7 +12,9 @@ import dfcommands as cmd
 import re
 import queue
 import json
+import api
 from hashlib import blake2b
+import logging
 
 LOG = []
 CONSOLE_DISPLAY = []
@@ -111,7 +113,11 @@ def process_line(line):
     if line in {"Vote passed.", "RE_Shutdown( 0 )"}:
         if not serverstate.PAUSE_STATE:
             serverstate.PAUSE_STATE = True
-            print("Game is loading. Pausing state.")
+            logging.info("Game is loading. Pausing state.")
+
+    if 'called a vote:' in line:
+        # api.exec_command("say Vote detected. Should I vote yes or no? Send ?f1 for yes and ?f2 for no.")
+        pass
 
     if 'Com_TouchMemory' in line or "entered the game." in line:
         if serverstate.RECONNECTING:
@@ -119,12 +125,12 @@ def process_line(line):
             serverstate.RECONNECTING = False
         elif serverstate.VID_RESTARTING:
             time.sleep(2)
-            print("vid_restart done.")
+            logging.info("vid_restart done.")
             serverstate.VID_RESTARTING = False
         elif serverstate.PAUSE_STATE:
             time.sleep(serverstate.MAP_LOAD_WAIT)
             serverstate.PAUSE_STATE = False
-            print("Game loaded. Continuing state.")
+            logging.info("Game loaded. Continuing state.")
             serverstate.MAP_LOAD_WAIT = 3
 
 
@@ -198,7 +204,7 @@ def process_line(line):
     except:
         return line_data
 
-    # print(line_data)
+    # print((line_data)
     return line_data
 
 
@@ -248,7 +254,7 @@ def get_log_line(within, end_type=None, end_author=None, end_content=None, end_c
 
 
 def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5, abort_after=20.0):
-    print("WAIT FOR LOG PARSED", start_ts, end_type, end_author, end_content, end_content_fuzzy, delay)
+    logging.info("WAIT FOR LOG PARSED", start_ts, end_type, end_author, end_content, end_content_fuzzy, delay)
 
     exec_start_ts = time.time()
 
@@ -260,11 +266,11 @@ def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_c
     # Check initial slice
     slice = [line for line in LOG if line["timestamp"] > start_ts]
 
-    print("INITIAL", slice)
+    logging.info("INITIAL", slice)
 
     for line in slice:
         if check_line(line, end_type, end_author, end_content, end_content_fuzzy):
-            print("FOUND", line)
+            logging.info("FOUND", line)
             return line
 
     while True:
@@ -280,11 +286,11 @@ def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_c
 
         slice = LOG[length : length_new]
 
-        print("MORE", slice)
+        logging.info("MORE", slice)
 
         for line in slice:
             if check_line(line, end_type, end_author, end_content, end_content_fuzzy):
-                print("FOUND", line)
+                logging.info("FOUND", line)
                 return line
 
         time.sleep(delay)
