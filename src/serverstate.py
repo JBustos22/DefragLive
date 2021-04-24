@@ -16,6 +16,7 @@ import random
 import config
 import os
 import servers
+import logging
 
 
 # Configurable variables, Strike = 2seconds
@@ -147,7 +148,7 @@ def start():
                             curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
                                          f" in server {STATE.hostname} | ip: {STATE.ip}"
                         if curr_state != prev_state:
-                            print(curr_state)
+                            logging.info(curr_state)
                         prev_state = curr_state
                         display_player_name(STATE.current_player_id)
         except:
@@ -197,7 +198,7 @@ def initialize_state():
         STATE = State(secret, server_info, players, bot_id)
         STATE.current_player_id = bot_id
         STATE_INITIALIZED = True
-        print("State Initialized.")
+        logging.info("State Initialized.")
     except:
         return False
 
@@ -233,7 +234,7 @@ def validate_state():
             # Add them to the afk list
             STATE.afk_ids.append(STATE.current_player_id) if STATE.current_player_id not in STATE.afk_ids else None
             if not PAUSE_STATE:
-                print("AFK. Switching...")
+                logging.info("AFK. Switching...")
                 api.exec_state_command("echo ^2---^3AFK player detected."
                                        " Switching to the next player.^2---;" * MESSAGE_REPEATS)
                 STATE.afk_counter = 0  # Reset AFK strike counter for next player
@@ -247,7 +248,7 @@ def validate_state():
         if follow_id != STATE.bot_id:  # Found someone successfully, follow this person
             if spectating_nospec:
                 if not PAUSE_STATE and not spectating_self:
-                    print('Nospec detected. Switching...')
+                    logging.info('Nospec detected. Switching...')
                     api.exec_state_command("cg_centertime 5;displaymessage 140 12 ^3no-spec detected. "
                                            "^7Switching to the next player.")
                     msg = f"No-spec detected. Switched to the next player."
@@ -261,7 +262,7 @@ def validate_state():
                 STATE.current_player_id = STATE.bot_id
             else:  # Was already spectating self. This is an idle strike
                 STATE.idle_counter += 1
-                print(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
+                logging.info(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
                 if not PAUSE_STATE:
                     api.exec_state_command(f"cg_centertime 1;displaymessage 140 12 ^7Not spectating. "
                                            f"^3Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
@@ -285,14 +286,14 @@ def validate_state():
         if inputs == '': # Empty key presses. This is an AFK strike.
             STATE.afk_counter += 1
             if STATE.afk_counter >= 15 and STATE.afk_counter % 5 == 0:
-                print(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
+                logging.info(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
                 api.exec_state_command(f"cg_centertime 5;displaymessage 140 12 ^7AFK player detected. ^3Switching in"
                                        f" {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.")
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             if STATE.afk_counter >= 15:
                 api.exec_state_command(f"cg_centertime 3;displaymessage 140 12 ^7Activity detected. ^3AFK counter aborted.")
-                print("Activity detected. AFK counter aborted.")
+                logging.info("Activity detected. AFK counter aborted.")
 
             STATE.afk_counter = 0
             STATE.afk_ids = []
@@ -308,7 +309,7 @@ def connect(ip):
     global STATE_INITIALIZED
 
     STATE_INITIALIZED = False
-    print(f"Connecting to {ip}...")
+    logging.info(f"Connecting to {ip}...")
     PAUSE_STATE = True
     api.exec_state_command("connect " + ip)
     time.sleep(2)
@@ -319,16 +320,16 @@ def connect(ip):
     # Loop until a new initial_report.txt is found. (Automatically created on respawn per respawn.cfg)
     while (not new_report_exists(config.INITIAL_REPORT_P) and not STATE_INITIALIZED) and reattempt_count <= max_reattempts:
         # Respawn file is not found. This is a connection strike.
-        print(f"Connection not detected. Strike {wait_count}/{max_wait_time}")
+        logging.info(f"Connection not detected. Strike {wait_count}/{max_wait_time}")
         if wait_count >= max_wait_time:
             reattempt_count += 1
             if reattempt_count >= max_reattempts:
                 IGNORE_IPS.append(ip) if ip not in IGNORE_IPS else None
             else:
-                max_wait_time = 10 * (reattempt_count + 1)  # Make wait time proportional to re-attempt iteration
+                max_wait_time = 10 * (reattempt_count + 1)  # Make wait time fproportional to re-attempt iteration
                 MAP_LOAD_WAIT = reattempt_count + 1 * MAP_LOAD_WAIT
                 wait_count = 1
-                print(f"Retrying connection. Re-attempt {reattempt_count}/{max_reattempts}."
+                logging.info(f"Retrying connection. Re-attempt {reattempt_count}/{max_reattempts}."
                       f" Bumping wait time to {max_wait_time}")
                 restart_connect(ip)
         else:
@@ -390,7 +391,7 @@ async def switch_spec(direction='next', channel=None):
         if follow_id == STATE.current_player_id: # Landed on the same id (list is length 1). No other players to spec.
             msg = "No other players to spectate."
             api.exec_command(f"cg_centertime 3;displaymessage 140 12 ^7{msg}")
-            print(msg)
+            logging.info(msg)
             if channel is not None:
                 await channel.send(msg)
         else:
