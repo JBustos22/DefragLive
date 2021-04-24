@@ -67,11 +67,6 @@ async def event_message(ctx):
             serverstate.connect(ip)
         elif cmd == "restart":
             connect_ip = servers.get_most_popular_server()
-            api.press_key_mult("{Esc}", 2)
-            api.press_key("{Enter}")
-            api.press_key_mult("{Tab}", 10)
-            api.press_key("{Enter}")
-            time.sleep(1)
             serverstate.connect(connect_ip)
         elif cmd in ["next", "n"]:
             await serverstate.switch_spec('next', channel=ctx.channel)
@@ -262,7 +257,7 @@ def launch():
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
     # iDFe will automatically take focus when launching
-    subprocess.Popen(args=[config.DF_EXE_PATH, "+connect", launch_ip], cwd=os.path.dirname(config.DF_EXE_PATH))
+    subprocess.Popen(args=[config.DF_EXE_PATH, "+cl_title", "TwitchBot Engine", "+con_title", "TwitchBot Console", "+connect", launch_ip], cwd=os.path.dirname(config.DF_EXE_PATH))
 
 
 # ------------------------------------------------------------

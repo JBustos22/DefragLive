@@ -342,15 +342,9 @@ def restart_connect(ip):
     Handles hard server connection restart. This method of connecting is menu-proof, in case we were stuck in the menu.
     """
     global PAUSE_STATE
-
     global RECONNECTING
 
     PAUSE_STATE, RECONNECTING = True, True
-    api.press_key_mult("{Esc}", 2)
-    api.press_key("{Enter}")
-    api.press_key_mult("{Tab}", 10)
-    api.press_key("{Enter}")
-    time.sleep(2)
     api.exec_state_command("connect " + ip)
 
 

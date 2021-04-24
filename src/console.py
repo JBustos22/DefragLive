@@ -80,7 +80,10 @@ def read(file_path: str):
             if 'command' in line_data and line_data['command'] is not None:
                 command = line_data['command']
                 handle_command = getattr(cmd, f"handle_{command}")
-                handle_command(line_data)
+                try:
+                    handle_command(line_data)
+                except Exception as e:
+                    logging.info(f"Error occurred for in-game command {command}: {e}")
 
             if line_data["type"] in ["PRINT", "SAY", "ANNOUNCE"]:
                 CONSOLE_DISPLAY.append(line_data)

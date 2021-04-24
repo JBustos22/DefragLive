@@ -8,8 +8,10 @@ from ahk import AHK
 
 import config
 
+
 AHK = AHK()
-WINDOW = None
+CONSOLEWINDOW = "TwitchBot Console"
+ENGINEWINDOW = "TwitchBot Engine"
 
 
 class WindowNotFoundError(Exception):
@@ -17,11 +19,17 @@ class WindowNotFoundError(Exception):
 
 
 def api_init():
+    global CONSOLE
     global WINDOW
 
-    WINDOW = AHK.find_window(process=config.DF_EXE_PATH)
+    CONSOLE = AHK.run_script("WinShow," + CONSOLEWINDOW + \
+                   "\nControlGet, console, Hwnd ,, Edit1, " + CONSOLEWINDOW + \
+                   "\nWinHide," + CONSOLEWINDOW + \
+                   "\nFileAppend, %console%, * ;", blocking=True)
+    # CONSOLE = AHK.find_window(process=config.DF_EXE_PATH, title=b"TwitchBot Console")
+    WINDOW = AHK.find_window(process=config.DF_EXE_PATH, title=b"TwitchBot Engine")
 
-    if WINDOW == None:
+    if CONSOLE is None or WINDOW is None:
         raise WindowNotFoundError
 
 
@@ -29,17 +37,16 @@ def exec_command(cmd, verbose=True):
     if verbose:
         logging.info(f"Execing command {cmd}")
 
-    with open(os.path.join(config.DF_DIR, 'twitch_cmd.cfg'), "w+") as f:
-        f.write(cmd)
-
-    press_key(config.get_bind(f"execq twitch_cmd.cfg"), verbose=False)
+    AHK.run_script("ControlSetText, , " + cmd.replace(',','\,') + ", ahk_id " + CONSOLE+ \
+                "\nControlSend, , {Enter}, ahk_id " + CONSOLE, blocking=True)
 
 
 def exec_state_command(cmd):
     with open(os.path.join(config.DF_DIR, 'state_cmd.cfg'), "w+") as f:
         f.write(cmd)
 
-    press_key(config.get_bind(f"execq state_cmd.cfg"), verbose=False)
+    AHK.run_script("ControlSetText, , " + cmd.replace(',', '\,') + ", ahk_id " + CONSOLE + \
+                   "\nControlSend, , {Enter}, ahk_id " + CONSOLE, blocking=True)
 
 
 def press_key(key, verbose=True):
