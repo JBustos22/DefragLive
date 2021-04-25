@@ -11,4 +11,5 @@ environ = {
     "SVINFO_REPORT_NAME": "serverstate.txt",
     "CHANNEL": "",
     "WS_ADDRESS": "ws://localhost:5005",
+    "LOG_DIR_PATH": "C:\\Absolute\\Path\\To\\Logs\\Folder"
 }
