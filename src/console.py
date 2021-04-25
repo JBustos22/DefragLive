@@ -122,19 +122,18 @@ def process_line(line):
         # api.exec_command("say Vote detected. Should I vote yes or no? Send ?f1 for yes and ?f2 for no.")
         pass
 
-    if 'Com_TouchMemory' in line or "entered the game." in line:
-        if serverstate.RECONNECTING:
-            time.sleep(2)
-            serverstate.RECONNECTING = False
+    if 'Com_TouchMemory' in line or "report written to system/reports/initialstate.txt" in line:
+        if serverstate.CONNECTING:
+            time.sleep(1)
+            serverstate.CONNECTING = False
         elif serverstate.VID_RESTARTING:
-            time.sleep(2)
+            time.sleep(1)
             logging.info("vid_restart done.")
             serverstate.VID_RESTARTING = False
         elif serverstate.PAUSE_STATE:
-            time.sleep(serverstate.MAP_LOAD_WAIT)
+            time.sleep(1)
             serverstate.PAUSE_STATE = False
             logging.info("Game loaded. Continuing state.")
-            serverstate.MAP_LOAD_WAIT = 3
 
 
     # SERVERCOMMAND

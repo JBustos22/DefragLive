@@ -26,7 +26,6 @@ def api_init():
                    "\nControlGet, console, Hwnd ,, Edit1, " + CONSOLEWINDOW + \
                    "\nWinHide," + CONSOLEWINDOW + \
                    "\nFileAppend, %console%, * ;", blocking=True)
-    # CONSOLE = AHK.find_window(process=config.DF_EXE_PATH, title=b"TwitchBot Console")
     WINDOW = AHK.find_window(process=config.DF_EXE_PATH, title=b"TwitchBot Engine")
 
     if CONSOLE is None or WINDOW is None:
@@ -41,14 +40,6 @@ def exec_command(cmd, verbose=True):
                 "\nControlSend, , {Enter}, ahk_id " + CONSOLE, blocking=True)
 
 
-def exec_state_command(cmd):
-    with open(os.path.join(config.DF_DIR, 'state_cmd.cfg'), "w+") as f:
-        f.write(cmd)
-
-    AHK.run_script("ControlSetText, , " + cmd.replace(',', '\,') + ", ahk_id " + CONSOLE + \
-                   "\nControlSend, , {Enter}, ahk_id " + CONSOLE, blocking=True)
-
-
 def press_key(key, verbose=True):
     try:
         if verbose:
@@ -56,17 +47,6 @@ def press_key(key, verbose=True):
         WINDOW.send(key, blocking=True, press_duration=30)
     except AttributeError:
         logging.info(f"Window not active. {key} was not sent to the client.")
-
-
-def press_key_mult(x, amount, delay=0.03, verbose=True):
-    try:
-        if verbose:
-            logging.info(f"Pressing {x} {amount} times with a delay of {delay}")
-        for _ in range(amount):
-            WINDOW.send(x, blocking=True, press_duration=30)
-            time.sleep(delay)
-    except AttributeError:
-        logging.info(f"Window not active. {x} was not sent to the client.")
 
 
 # duration in seconds

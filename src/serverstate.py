@@ -24,13 +24,12 @@ MESSAGE_REPEATS = 1  # How many times to spam info messages. 0 for no messages.
 AFK_TIMEOUT = 40  # Switch after afk detected x consecutive times.
 IDLE_TIMEOUT = 5  # Alone in server timeout.
 INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
-MAP_LOAD_WAIT = 10  # Time to wait for a map to load. (Will increase proportional to retries count)
 
 
 STATE = None
 PAUSE_STATE = False
 IGNORE_IPS = []
-RECONNECTING = False
+CONNECTING = False
 VID_RESTARTING = False
 STATE_INITIALIZED = False
 LAST_REPORT_TIME = time.time()
@@ -131,8 +130,8 @@ def start():
                 time.sleep(2)
 
                 if not PAUSE_STATE:
-                    api.exec_state_command("varmath color2 = $chsinfo(152);"  # Store inputs in color2
-                                           "silent svinfo_report serverstate.txt")  # Write a new report
+                    api.exec_command("varmath color2 = $chsinfo(152);"  # Store inputs in color2
+                                           "silent svinfo_report serverstate.txt", verbose=False)  # Write a new report
                 elif not VID_RESTARTING:
                     raise Exception("Paused.")
 
@@ -153,6 +152,7 @@ def start():
                         display_player_name(STATE.current_player_id)
         except:
             pass
+            time.sleep(1)
 
 
 def initialize_state():
@@ -177,7 +177,7 @@ def initialize_state():
             init_counter += 1
             if not PAUSE_STATE:
                 # Set color1 to secret code to determine bot's client id
-                api.exec_state_command(f"seta color1 {secret};silent svinfo_report serverstate.txt")
+                api.exec_command(f"seta color1 {secret};silent svinfo_report serverstate.txt", verbose=False)
             else:
                 raise Exception("Paused.")
 
@@ -235,8 +235,8 @@ def validate_state():
             STATE.afk_ids.append(STATE.current_player_id) if STATE.current_player_id not in STATE.afk_ids else None
             if not PAUSE_STATE:
                 logging.info("AFK. Switching...")
-                api.exec_state_command("cg_centertime 5;displaymessage 140 12 ^3AFK player detected. "
-                                           "^7Switching to the next player.")
+                api.exec_command("cg_centertime 5;displaymessage 140 12 ^3AFK player detected. "
+                                           "^7Switching to the next player.", verbose=False)
                 STATE.afk_counter = 0  # Reset AFK strike counter for next player
         except ValueError:
             pass
@@ -249,23 +249,23 @@ def validate_state():
             if spectating_nospec:
                 if not PAUSE_STATE and not spectating_self:
                     logging.info('Nospec detected. Switching...')
-                    api.exec_state_command("cg_centertime 5;displaymessage 140 12 ^3no-spec detected. "
-                                           "^7Switching to the next player.")
+                    api.exec_command("cg_centertime 5;displaymessage 140 12 ^3no-spec detected. "
+                                           "^7Switching to the next player.", verbose=False)
                     msg = f"No-spec detected. Switched to the next player."
             display_player_name(follow_id)
-            api.exec_state_command(f"follow {follow_id}")
+            api.exec_command(f"follow {follow_id}")
             STATE.idle_counter = 0  # Reset idle counter
 
         else:  # Only found ourselves to spec.
             if STATE.current_player_id != STATE.bot_id:  # Stop spectating player, go to free spec mode instead.
-                api.exec_state_command(f"follow {follow_id}")
+                api.exec_command(f"follow {follow_id}")
                 STATE.current_player_id = STATE.bot_id
             else:  # Was already spectating self. This is an idle strike
                 STATE.idle_counter += 1
                 logging.info(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
                 if not PAUSE_STATE:
-                    api.exec_state_command(f"cg_centertime 1;displaymessage 140 12 ^7Not spectating. "
-                                           f"^3Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
+                    api.exec_command(f"cg_centertime 1;displaymessage 140 12 ^7Not spectating. "
+                                           f"^3Strike {STATE.idle_counter}/{IDLE_TIMEOUT}", verbose=False)
 
             if STATE.idle_counter >= IDLE_TIMEOUT or spectating_afk:
                 # There's been no one on the server for a while or only afks. Switch servers.
@@ -287,13 +287,13 @@ def validate_state():
             STATE.afk_counter += 1
             if STATE.afk_counter >= 15 and STATE.afk_counter % 5 == 0:
                 logging.info(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
-                api.exec_state_command(f"cg_centertime 5;displaymessage 140 12 ^7AFK player detected. ^3Switching in"
-                                       f" {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.")
+                api.exec_command(f"cg_centertime 5;displaymessage 140 12 ^7AFK player detected. ^3Switching in"
+                                       f" {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.", verbose=False)
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             if STATE.afk_counter >= 15:
-                api.exec_state_command(f"cg_centertime 3;displaymessage 140 12 ^7Activity detected. ^3AFK counter aborted.")
-                logging.info("Activity detected. AFK counter aborted.")
+                api.exec_command(f"cg_centertime 3;displaymessage 140 12 ^7Activity detected. ^3AFK counter aborted.")
+                logging.info("Activity detected. AFK counter aborted.", verbose=False)
 
             STATE.afk_counter = 0
             STATE.afk_ids = []
@@ -305,47 +305,14 @@ def connect(ip):
     Handles connection to a server and re-attempts if connection is not resolved.
     """
     global PAUSE_STATE
-    global MAP_LOAD_WAIT
     global STATE_INITIALIZED
+    global CONNECTING
 
     STATE_INITIALIZED = False
     logging.info(f"Connecting to {ip}...")
     PAUSE_STATE = True
-    api.exec_state_command("connect " + ip)
-    time.sleep(2)
-
-    max_reattempts, reattempt_count = 2, 0
-    max_wait_time, wait_count = 10, 1
-
-    # Loop until a new initial_report.txt is found. (Automatically created on respawn per respawn.cfg)
-    while (not new_report_exists(config.INITIAL_REPORT_P) and not STATE_INITIALIZED) and reattempt_count <= max_reattempts:
-        # Respawn file is not found. This is a connection strike.
-        logging.info(f"Connection not detected. Strike {wait_count}/{max_wait_time}")
-        if wait_count >= max_wait_time:
-            reattempt_count += 1
-            if reattempt_count >= max_reattempts:
-                IGNORE_IPS.append(ip) if ip not in IGNORE_IPS else None
-            else:
-                max_wait_time = 10 * (reattempt_count + 1)  # Make wait time fproportional to re-attempt iteration
-                MAP_LOAD_WAIT = reattempt_count + 1 * MAP_LOAD_WAIT
-                wait_count = 1
-                logging.info(f"Retrying connection. Re-attempt {reattempt_count}/{max_reattempts}."
-                      f" Bumping wait time to {max_wait_time}")
-                restart_connect(ip)
-        else:
-            wait_count += 1
-        time.sleep(1)
-
-
-def restart_connect(ip):
-    """
-    Handles hard server connection restart. This method of connecting is menu-proof, in case we were stuck in the menu.
-    """
-    global PAUSE_STATE
-    global RECONNECTING
-
-    PAUSE_STATE, RECONNECTING = True, True
-    api.exec_state_command("connect " + ip)
+    CONNECTING = True
+    api.exec_command("connect " + ip, verbose=False)
 
 
 def new_report_exists(path):
@@ -422,7 +389,7 @@ def display_player_name(follow_id):
     if follow_player is not None:
         player_name = follow_player.n
         display_name = player_name if player_name.strip() not in config.get_list('blacklist_names') else "*" * len(player_name)
-        # api.exec_state_command(f"set player-name {display_name}") # uncomment to censor blacklisted names
+        # api.exec_command(f"set player-name {display_name}") # uncomment to censor blacklisted names
 
 
 def get_svinfo_report(filename):

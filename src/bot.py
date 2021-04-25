@@ -130,7 +130,7 @@ async def event_message(ctx):
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
         elif cmd == "map":
-            api.exec_state_command(f"cg_centertime 4;displaymessage 140 12 ^7The current map is: ^3{serverstate.STATE.mapname};")
+            api.exec_command(f"cg_centertime 4;displaymessage 140 12 ^7The current map is: ^3{serverstate.STATE.mapname};")
             msg = f"The current map is: {serverstate.STATE.mapname}"
             await ctx.channel.send(msg)
         elif cmd == "speclist":
@@ -152,7 +152,7 @@ async def event_message(ctx):
             msg = serverstate.spectate_player(follow_id)
             await ctx.channel.send(msg)
             time.sleep(1)
-            api.exec_state_command(f"cg_centertime 3;varcommand displaymessage 140 12 ^3{author} ^7has switched to $chsinfo(117)")
+            api.exec_command(f"cg_centertime 3;varcommand displaymessage 140 12 ^3{author} ^7has switched to $chsinfo(117)")
 
         elif cmd == "server" or cmd == "sv":
             msg = f"The current server is \"{serverstate.STATE.hostname}\" ({serverstate.STATE.ip})"
