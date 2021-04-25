@@ -235,8 +235,8 @@ def validate_state():
             STATE.afk_ids.append(STATE.current_player_id) if STATE.current_player_id not in STATE.afk_ids else None
             if not PAUSE_STATE:
                 logging.info("AFK. Switching...")
-                api.exec_state_command("echo ^2---^3AFK player detected."
-                                       " Switching to the next player.^2---;" * MESSAGE_REPEATS)
+                api.exec_state_command("cg_centertime 5;displaymessage 140 12 ^3AFK player detected. "
+                                           "^7Switching to the next player.")
                 STATE.afk_counter = 0  # Reset AFK strike counter for next player
         except ValueError:
             pass
