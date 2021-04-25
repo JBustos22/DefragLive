@@ -19,6 +19,7 @@ class WindowNotFoundError(Exception):
 
 
 def api_init():
+    """Grab both engine and console windows. Thanks to run for this code"""
     global CONSOLE
     global WINDOW
 
@@ -35,8 +36,8 @@ def api_init():
 def exec_command(cmd, verbose=True):
     if verbose:
         logging.info(f"Execing command {cmd}")
-
-    AHK.run_script("ControlSetText, , " + cmd.replace(',','\,') + ", ahk_id " + CONSOLE+ \
+    # send the text to the console window, escape commas (must be `, to show up in chat)
+    AHK.run_script("ControlSetText, , " + cmd.replace(',', '`,') + ", ahk_id " + CONSOLE+ \
                 "\nControlSend, , {Enter}, ahk_id " + CONSOLE, blocking=True)
 
 

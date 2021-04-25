@@ -128,7 +128,7 @@ async def event_message(ctx):
         elif cmd == "slick":
             api.exec_command(f"toggle r_renderSlickSurfaces 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Slick highlighted")
         elif cmd == "n1":
-            api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117) ^2!")
+            api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117)^2!")
         elif cmd == "map":
             api.exec_command(f"cg_centertime 4;displaymessage 140 12 ^7The current map is: ^3{serverstate.STATE.mapname};")
             msg = f"The current map is: {serverstate.STATE.mapname}"
