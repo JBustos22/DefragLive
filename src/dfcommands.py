@@ -2,7 +2,7 @@
 
 import api
 import requests
-supported_commands = ["nospec", "info", "help", "howmany", "clear", "discord"]
+supported_commands = ["nospec", "info", "help", "howmany", "clear", "discord", "whoisthebest"]
 
 
 def scan_for_command(message):
@@ -27,6 +27,11 @@ def handle_help(line_data):
 
 def handle_nospec(line_data):
     api.exec_command(f"say ^7Don't want to be spectated? do ^3/color1 nospec^7, To allow spectating change it ^3/color1 specme")
+    return None
+
+
+def handle_whoisthebest(line_data):
+    api.exec_command(f"varcommand say ^7You are the best $chsinfo(117). Only ^3you ^7and nobody else! ^1<3")
     return None
 
 

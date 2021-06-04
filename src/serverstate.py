@@ -235,7 +235,7 @@ def validate_state():
             STATE.afk_ids.append(STATE.current_player_id) if STATE.current_player_id not in STATE.afk_ids else None
             if not PAUSE_STATE:
                 logging.info("AFK. Switching...")
-                api.exec_command("cg_centertime 5;displaymessage 140 12 ^3AFK player detected. "
+                api.exec_command("cg_centertime 5;displaymessage 140 10 ^3AFK detected. "
                                            "^7Switching to the next player.", verbose=False)
                 STATE.afk_counter = 0  # Reset AFK strike counter for next player
         except ValueError:
@@ -249,7 +249,7 @@ def validate_state():
             if spectating_nospec:
                 if not PAUSE_STATE and not spectating_self:
                     logging.info('Nospec detected. Switching...')
-                    api.exec_command("cg_centertime 5;displaymessage 140 12 ^3no-spec detected. "
+                    api.exec_command("cg_centertime 5;displaymessage 140 10 ^3no-spec detected. "
                                            "^7Switching to the next player.", verbose=False)
                     msg = f"No-spec detected. Switched to the next player."
             display_player_name(follow_id)
@@ -264,7 +264,7 @@ def validate_state():
                 STATE.idle_counter += 1
                 logging.info(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
                 if not PAUSE_STATE:
-                    api.exec_command(f"cg_centertime 1;displaymessage 140 12 ^7Not spectating. "
+                    api.exec_command(f"cg_centertime 1;displaymessage 140 10 ^7Not spectating. "
                                            f"^3Strike {STATE.idle_counter}/{IDLE_TIMEOUT}", verbose=False)
 
             if STATE.idle_counter >= IDLE_TIMEOUT or spectating_afk:
@@ -287,12 +287,12 @@ def validate_state():
             STATE.afk_counter += 1
             if STATE.afk_counter >= 15 and STATE.afk_counter % 5 == 0:
                 logging.info(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
-                api.exec_command(f"cg_centertime 5;displaymessage 140 12 ^7AFK player detected. ^3Switching in"
+                api.exec_command(f"cg_centertime 5;displaymessage 140 10 ^7AFK detected. ^3Switching in"
                                        f" {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.", verbose=False)
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             if STATE.afk_counter >= 15:
-                api.exec_command(f"cg_centertime 3;displaymessage 140 12 ^7Activity detected. ^3AFK counter aborted.")
+                api.exec_command(f"cg_centertime 3;displaymessage 140 10 ^7Activity detected. ^3AFK counter aborted.")
                 logging.info("Activity detected. AFK counter aborted.", verbose=False)
 
             STATE.afk_counter = 0
@@ -351,7 +351,7 @@ async def switch_spec(direction='next', channel=None):
 
         if follow_id == STATE.current_player_id: # Landed on the same id (list is length 1). No other players to spec.
             msg = "No other players to spectate."
-            api.exec_command(f"cg_centertime 3;displaymessage 140 12 ^7{msg}")
+            api.exec_command(f"cg_centertime 3;displaymessage 140 10 ^7{msg}")
             logging.info(msg)
             if channel is not None:
                 await channel.send(msg)

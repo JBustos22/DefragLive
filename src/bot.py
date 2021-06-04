@@ -70,69 +70,71 @@ async def event_message(ctx):
             serverstate.connect(connect_ip)
         elif cmd in ["next", "n"]:
             await serverstate.switch_spec('next', channel=ctx.channel)
-            api.exec_command(f"cg_centertime 2;displaymessage 140 12 ^3{author} ^7has switched to ^3Next player")
+            api.exec_command(f"cg_centertime 2;displaymessage 140 10 ^3{author} ^7has switched to ^3Next player")
         elif cmd in ["prev", "p"]:
             await serverstate.switch_spec('prev', channel=ctx.channel)
-            api.exec_command(f"cg_centertime 2;displaymessage 140 12 ^3{author} ^7has switched to ^3Previous player")
+            api.exec_command(f"cg_centertime 2;displaymessage 140 10 ^3{author} ^7has switched to ^3Previous player")
         elif cmd in ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"]:
             api.hold_key(config.get_bind("+scores"), 4.5)
         elif cmd == "reconnect":
             serverstate.connect(serverstate.STATE.ip)
         elif cmd == "triggers":
-            api.exec_command(f"toggle r_rendertriggerBrushes 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Render Triggers")
+            api.exec_command(f"toggle r_rendertriggerBrushes 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Render Triggers")
         elif cmd == "clips":
-            api.exec_command(f"toggle r_renderClipBrushes 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Render Clips")
+            api.exec_command(f"toggle r_renderClipBrushes 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Render Clips")
         elif cmd == "clear":
-            api.exec_command(f"clear;cg_centertime 3;cg_centertime 3;displaymessage 140 12 ^3{author} ^1Ingame chat has been erased ^3:(")
+            api.exec_command(f"clear;cg_centertime 3;cg_centertime 3;displaymessage 140 10 ^3{author} ^1Ingame chat has been erased ^3:(")
         elif cmd == "lagometer":
-            api.exec_command(f"toggle cg_lagometer 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Lagometer")
+            api.exec_command(f"toggle cg_lagometer 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Lagometer")
         elif cmd == "snaps":
-            api.exec_command(f"toggle mdd_snap 0 3;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3snaps hud")
+            api.exec_command(f"toggle mdd_snap 0 3;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3snaps hud")
         elif cmd == "fixchat":
-            api.exec_command(f"cl_noprint 0;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has fixed: ^3ingame chat")
+            api.exec_command(f"cl_noprint 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has fixed: ^3ingame chat")
         elif cmd == "cgaz":
-            api.exec_command(f"toggle mdd_cgaz 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Cgaz hud")
+            api.exec_command(f"toggle mdd_cgaz 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Cgaz hud")
         elif cmd == "nodraw":
-            api.exec_command(f"toggle df_mp_NoDrawRadius 100 100000;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Players visibility")
+            api.exec_command(f"toggle df_mp_NoDrawRadius 100 100000;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Players visibility")
         elif cmd == "angles":
-            api.exec_command(f"toggle df_chs1_Info6 0 40;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Weapon angles")
+            api.exec_command(f"toggle df_chs1_Info6 0 40;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Weapon angles")
         elif cmd == "obs":
-            api.exec_command(f"toggle df_chs1_Info7 0 50;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3OverBounces")
+            api.exec_command(f"toggle df_chs1_Info7 0 50;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3OverBounces")
         elif cmd == "drawgun":
-            api.exec_command(f"toggle cg_drawgun 1 2;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Gun movement")
+            api.exec_command(f"toggle cg_drawgun 1 2;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Gun movement")
         elif cmd == "clean":
-            api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Clean POV")
+            api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Clean POV")
         elif cmd == "sky":
-            api.exec_command(f"toggle r_fastsky 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Sky")
+            api.exec_command(f"toggle r_fastsky 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Sky")
         elif cmd in ["vote", "f1", "f2"]:
             if cmd != "vote":
                 arg = "yes" if cmd == "f1" else "no"
             else:
                 arg = args[0]
             api.press_key(config.get_bind(f"vote {arg}"))
-            api.exec_command(f"say ^3{author} ^7voted ^3{arg};cg_centertime 3;displaymessage 140 12 ^3{author} ^7voted ^3{arg}")
+            api.exec_command(f"say ^3{author} ^7voted ^3{arg};cg_centertime 3;displaymessage 140 10 ^3{author} ^7voted ^3{arg}")
         elif cmd == "speedinfo":
-            api.exec_command(f"toggle df_chs1_Info5 0 23;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Speedometer (chs info)")
+            api.exec_command(f"toggle df_chs1_Info5 0 23;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Speedometer (chs info)")
         elif cmd == "speedorig":
-            api.exec_command(f"toggle df_drawSpeed 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Speedometer (hud element)")
+            api.exec_command(f"toggle df_drawSpeed 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Speedometer (hud element)")
         elif cmd == "gibs":
-            api.exec_command(f"toggle cg_gibs 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Gibs after kill")
+            api.exec_command(f"toggle cg_gibs 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Gibs after kill")
         elif cmd == "blood":
-            api.exec_command(f"toggle com_blood 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Blood after kill")
+            api.exec_command(f"toggle com_blood 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Blood after kill")
         elif cmd == "thirdperson":
-            api.exec_command(f"toggle cg_thirdperson 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Thirdperson\n POV")
+            api.exec_command(f"toggle cg_thirdperson 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Thirdperson POV")
         elif cmd == "miniview":
-            api.exec_command(f"toggle df_ghosts_MiniviewDraw 0 6;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Miniview")
+            api.exec_command(f"toggle df_ghosts_MiniviewDraw 0 6;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Miniview")
         elif cmd == "inputs":
-            api.exec_command(f"toggle df_chs0_draw 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Inputs (WASD...)")
+            api.exec_command(f"toggle df_chs0_draw 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Inputs (WASD...)")
         elif cmd == "slick":
-            api.exec_command(f"toggle r_renderSlickSurfaces 0 1;cg_centertime 3;displaymessage 140 12 ^3{author} ^7has changed: ^3Slick highlighted")
+            api.exec_command(f"toggle r_renderSlickSurfaces 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Slick highlighted")
         elif cmd == "n1":
             api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117)^2!")
         elif cmd == "map":
-            api.exec_command(f"cg_centertime 4;displaymessage 140 12 ^7The current map is: ^3{serverstate.STATE.mapname};")
+            api.exec_command(f"cg_centertime 4;displaymessage 140 10 ^7The current map is: ^3{serverstate.STATE.mapname};")
             msg = f"The current map is: {serverstate.STATE.mapname}"
             await ctx.channel.send(msg)
+        elif cmd == "check":
+            api.exec_command(f"r_mapoverbrightbits;r_gamma")
         elif cmd == "speclist":
             msg = f"Watchable players:" \
                   f" {serverstate.STATE.get_specable_players()} " \
@@ -152,7 +154,7 @@ async def event_message(ctx):
             msg = serverstate.spectate_player(follow_id)
             await ctx.channel.send(msg)
             time.sleep(1)
-            api.exec_command(f"cg_centertime 3;varcommand displaymessage 140 12 ^3{author} ^7has switched to $chsinfo(117)")
+            api.exec_command(f"cg_centertime 3;varcommand displaymessage 140 10 ^3{author} ^7has switched to $chsinfo(117)")
 
         elif cmd == "server" or cmd == "sv":
             msg = f"The current server is \"{serverstate.STATE.hostname}\" ({serverstate.STATE.ip})"
