@@ -293,7 +293,7 @@ def validate_state():
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             if STATE.afk_counter >= 15:
                 api.exec_command(f"cg_centertime 3;displaymessage 140 10 ^7Activity detected. ^3AFK counter aborted.")
-                logging.info("Activity detected. AFK counter aborted.", verbose=False)
+                logging.info("Activity detected. AFK counter aborted.")
 
             STATE.afk_counter = 0
             STATE.afk_ids = []
