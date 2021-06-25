@@ -50,6 +50,10 @@ def press_key(key, verbose=True):
         logging.info(f"Window not active. {key} was not sent to the client.")
 
 
+def display_message(message, time=3, y_pos=140, size=10):
+    exec_command(f"cg_centertime {time};displaymessage {y_pos} {size} {message}")
+
+
 # duration in seconds
 def hold_key(x, duration):
     try:

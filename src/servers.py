@@ -1,6 +1,21 @@
 import requests
 from bs4 import BeautifulSoup
 
+HOSTNAMES = {
+    "defrag.rocks": "140.82.4.154",
+    "q3df.ru": "83.243.73.220",
+    "au.q3df.run": "54.206.0.6",
+    "se.q3df.run": "13.51.137.1",
+    "sg.q3df.run": "175.41.167.174",
+    "br.q3df.run": "54.94.102.4",
+    "jp.q3df.run": "35.72.202.141",
+    "gb.q3df.run": "3.10.114.224",
+    "us.q3df.run": "52.39.193.224",
+    "za.q3df.run": "13.245.107.109",
+    "cl.q3df.run": "186.64.123.196",
+    "cn.q3df.run": "101.132.103.203",
+    "ca.q3df.run": "35.183.79.73",
+}
 
 def scrape_servers_data():
     """ Obtains data from q3df.org/servers using web scraping"""
@@ -71,7 +86,7 @@ def get_next_active_server(ignore_list):
 
     server_data = filtered_server_data
     for ignore_ip in ignore_list:
-        ignore_ip = ignore_ip.replace('defrag.rocks', '140.82.4.154').replace('q3df.ru', '83.243.73.220')
+        ignore_ip = resolve_hostname(ignore_ip)
         if ':' not in ignore_ip:
             ignore_ip += ':27960'
 
@@ -84,3 +99,12 @@ def get_next_active_server(ignore_list):
             max_plyr_ip = server["state"]["ip"]
 
     return max_plyr_ip
+
+
+def resolve_hostname(ip):
+    for hostname in HOSTNAMES:
+        if hostname in ip:
+            new_ip = ip.replace(hostname, HOSTNAMES[hostname])
+            print("resolved {ip} to {new_ip}")
+            return new_ip
+    return ip

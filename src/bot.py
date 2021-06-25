@@ -66,6 +66,7 @@ async def event_message(ctx):
                 return
             serverstate.connect(ip)
         elif cmd == "restart":
+            serverstate.IGNORE_IPS = []
             connect_ip = servers.get_most_popular_server()
             serverstate.connect(connect_ip)
         elif cmd in ["next", "n"]:
