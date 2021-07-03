@@ -129,6 +129,7 @@ def process_line(line):
         elif serverstate.VID_RESTARTING:
             time.sleep(1)
             logging.info("vid_restart done.")
+            serverstate.PAUSE_STATE = False
             serverstate.VID_RESTARTING = False
         elif serverstate.PAUSE_STATE:
             time.sleep(1)
