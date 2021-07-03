@@ -172,6 +172,7 @@ async def event_message(ctx):
             if value.isdigit() and (0 < int(value) <= 5):
                 logging.info("vid_restarting...")
                 serverstate.VID_RESTARTING = True
+                serverstate.PAUSE_STATE = True
                 api.exec_command(f"r_mapoverbrightbits {value};vid_restart")
             else:
                 await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
@@ -185,6 +186,7 @@ async def event_message(ctx):
             if value.isdigit() and (0 <= int(value) <= 6):
                 logging.info("vid_restarting..")
                 serverstate.VID_RESTARTING = True
+                serverstate.PAUSE_STATE = True
                 api.exec_command(f"r_picmip {value};vid_restart")
             else:
                 await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
