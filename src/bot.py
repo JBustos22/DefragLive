@@ -190,6 +190,18 @@ async def event_message(ctx):
                 api.exec_command(f"r_picmip {value};vid_restart")
             else:
                 await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
+        elif cmd == "gamma":
+            whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
+            if author not in whitelisted_twitch_users and not ctx.author.is_mod:
+                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command."
+                                       f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
+                return
+            value = float(args[0])
+            if 1.0 <= int(value) <= 1.6:
+                logging.info("i did it..")
+                api.exec_command(f"r_gamma {value}")
+            else:
+                await ctx.channel.send(f"{author}, the allowed values for gamma are 1.0-1.6")
 
         # Disabled. Possibly useful for the future:
 
