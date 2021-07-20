@@ -17,32 +17,12 @@ HOSTNAMES = {
     "ca.q3df.run": "35.183.79.73",
 }
 
+
 def scrape_servers_data():
     """ Obtains data from q3df.org/servers using web scraping"""
-    url = f'https://q3df.org/serverlist'
-    r = requests.get(url, verify=False)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    server_ids = [ele.get('id').split('_')[-1] for ele in soup.findAll('div', {'class': 'server-item shadow'})]
-    server_names = [ele.text for ele in soup.findAll('div', {'class': 'server-head'})]
-    server_states = [ele.find('ul').text.strip('\n').split('\n') for ele in soup.findAll('div', {'class': 'server-map-info'})]
-    server_players_qty = [len(ele.find_all('span', {'class':'visname'})) for ele in soup.findAll('div', {'class': 'server-players'})]
-    servers_data = {}
-    for i in range(len(server_ids)):
-        if server_players_qty[i] > 0:
-            state = server_states[i]
-            server_state = {
-                "ip": state[0],
-                "map_name": state[1],
-                "physics": state[2]
-            }
-            server_details = {
-                "name": server_names[i],
-                "state": server_state,
-                "players_qty": server_players_qty[i]
-            }
-            servers_data[server_ids[i]] = server_details
-
-    return servers_data
+    url = f'https://servers.q3df.run/'
+    data = requests.get(url, verify=False).json()
+    return data
 
 
 def check_if_valid_ip(ip: str):
@@ -56,35 +36,61 @@ def check_if_valid_ip(ip: str):
     return len([server for (id, server) in servers_data.items() if ip == server["state"]["ip"]]) > 0
 
 
-def get_most_popular_server(ignore_ip=None):
+def apply_whitelist(servers_data):
+    """
+    Applies the server ip whitelist to current server data object
+    :param servers_data:
+    :return:
+    """
+    from config import get_list
+    filtered_server_data = dict()
+    for sv_ip, sv_data in servers_data['active'].items():
+        if sv_ip.split(':')[0] in get_list('whitelist_servers'):
+            filtered_server_data[sv_ip] = sv_data
+    return filtered_server_data
+
+
+def get_most_popular_server():
     """ Returns the IP of the server with the most players, or defrag.rocks if no servers are populated """
     servers_data = scrape_servers_data()
-    if ignore_ip is not None:
-        ignore_ip = ignore_ip.replace('defrag.rocks', '140.82.4.154').replace('q3df.ru', '83.243.73.220')
-        if ':' not in ignore_ip:
-            ignore_ip += ':27960'
+
+    servers_data = apply_whitelist(servers_data)
 
     max_plyr_qty = 0
     max_plyr_ip = ""
 
-    for id, server in servers_data.items():
-        if server["players_qty"] > max_plyr_qty and server['state']['ip'] != ignore_ip:
-            max_plyr_qty = server["players_qty"]
-            max_plyr_ip = server["state"]["ip"]
+    for ip_addr, data in servers_data.items():
+        active_players = get_active_players(data)
+        player_qty = len(active_players)
+        if player_qty > max_plyr_qty:
+            max_plyr_qty = player_qty
+            max_plyr_ip = ip_addr
 
     return max_plyr_ip
 
 
+def get_active_players(data):
+    """Returns the amount of *active* players. Meaning player count without spectators or nospeccers"""
+    speccable_players = []
+    active_players = []
+    if data['scores']['num_players']:
+        for plyr_num in data['players']:
+            player = data['players'][plyr_num]
+            if not player['nospec']:
+                speccable_players.append(int(player['clientId']))
+        for score_player in data['scores']['players']:
+            if score_player['player_num'] in speccable_players and score_player['follow_num'] == -1:
+                active_players.append(score_player['player_num'])
+    return active_players
+
+
 def get_next_active_server(ignore_list):
+    """Returns the next active server omitting the servers given in ignore_list"""
     from config import get_list
-    server_data = scrape_servers_data()
+    servers_data = scrape_servers_data()
 
-    filtered_server_data = dict()
-    for sv_key, sv_data in server_data.items():
-        if server_data[sv_key]['state']['ip'].split(':')[0] in get_list('whitelist_servers'):
-            filtered_server_data[sv_key] = sv_data
+    servers_data = apply_whitelist(servers_data)
 
-    server_data = filtered_server_data
     for ignore_ip in ignore_list:
         ignore_ip = resolve_hostname(ignore_ip)
         if ':' not in ignore_ip:
@@ -93,10 +99,12 @@ def get_next_active_server(ignore_list):
     max_plyr_qty = 0
     max_plyr_ip = ""
 
-    for id, server in server_data.items():
-        if server["players_qty"] > max_plyr_qty and server['state']['ip'] not in ignore_list:
-            max_plyr_qty = server["players_qty"]
-            max_plyr_ip = server["state"]["ip"]
+    for ip_addr, data in servers_data.items():
+        active_players = get_active_players(data)
+        player_qty = len(active_players)
+        if player_qty > max_plyr_qty and ip_addr not in ignore_list:
+            max_plyr_qty = player_qty
+            max_plyr_ip = ip_addr
 
     return max_plyr_ip
 

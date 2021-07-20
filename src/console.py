@@ -135,6 +135,7 @@ def process_line(line):
             time.sleep(1)
             serverstate.PAUSE_STATE = False
             logging.info("Game loaded. Continuing state.")
+            serverstate.STATE.say_connect_msg()
 
 
     # SERVERCOMMAND

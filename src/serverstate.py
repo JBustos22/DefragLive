@@ -54,6 +54,7 @@ class State:
         if self.bot_id in self.spec_ids:
             self.spec_ids.remove(self.bot_id)
         self.afk_ids = []
+        self.connect_msg = None
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -97,6 +98,11 @@ class State:
             nospec_players += plyr_string
         return f'{nospec_players.rstrip("|")}'
 
+    def say_connect_msg(self):
+        if self.connect_msg is not None:
+            api.exec_command(f"say {self.connect_msg}")
+            self.connect_msg = None
+
 
 class Player:
     """
@@ -134,7 +140,7 @@ def start():
                     api.exec_command("varmath color2 = $chsinfo(152);"  # Store inputs in color2
                                            "silent svinfo_report serverstate.txt", verbose=False)  # Write a new report
                 elif not VID_RESTARTING:
-                    raise Exception("Paused.")
+                    raise Exception("State is paused.")
 
                 if new_report_exists(config.STATE_REPORT_P):
                     # Given that a new report exists, read this new data.
@@ -151,7 +157,8 @@ def start():
                             logging.info(curr_state)
                         prev_state = curr_state
                         display_player_name(STATE.current_player_id)
-        except:
+        except Exception as e:
+            print(f"State could not retrieved: {e}\nRetrying...")
             pass
             time.sleep(1)
 
@@ -294,7 +301,7 @@ def validate_state():
             STATE.afk_counter += 1
             if STATE.afk_counter >= 15 and STATE.afk_counter % 5 == 0:
                 logging.info(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
-                api.display_message(f" {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.", time=5)
+                api.display_message(f" AFK detected. Switching in {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.", time=5)
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             if STATE.afk_counter >= 15:
@@ -306,7 +313,7 @@ def validate_state():
             IGNORE_IPS = []
 
 
-def connect(ip):
+def connect(ip, caller=None):
     """
     Handles connection to a server and re-attempts if connection is not resolved.
     """
@@ -320,6 +327,8 @@ def connect(ip):
     logging.info(f"Connecting to {ip}...")
     PAUSE_STATE = True
     CONNECTING = True
+    if caller is not None:
+        STATE.connect_msg = f"^7Brought by ^3{caller}"
     api.exec_command("connect " + ip, verbose=False)
 
 

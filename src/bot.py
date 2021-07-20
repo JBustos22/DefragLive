@@ -64,7 +64,7 @@ async def event_message(ctx):
                 logging.info(msg)
                 await ctx.channel.send(msg)
                 return
-            serverstate.connect(ip)
+            serverstate.connect(ip, author)
         elif cmd == "restart":
             serverstate.IGNORE_IPS = []
             connect_ip = servers.get_most_popular_server()
