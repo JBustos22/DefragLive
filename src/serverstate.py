@@ -124,15 +124,15 @@ def start():
     global PAUSE_STATE
     global VID_RESTARTING
 
+    prev_state, curr_state = None, None
+    initialize_state()
     while True:
         try:
             if PAUSE_STATE:
                 raise Exception("Paused.")
-            elif not new_report_exists(config.INITIAL_REPORT_P):
-                raise Exception("Waiting for initial response")
 
             # Only refresh the STATE object if new data has been read and if state is not paused
-            while True:
+            while not new_report_exists(config.INITIAL_REPORT_P) and not PAUSE_STATE:
                 time.sleep(2)
 
                 if not PAUSE_STATE:
@@ -157,7 +157,6 @@ def start():
                         prev_state = curr_state
                         display_player_name(STATE.current_player_id)
         except Exception as e:
-            print(f"State could not retrieved: {e}\nRetrying...")
             if e == 'Paused':
                 pass
             else:
