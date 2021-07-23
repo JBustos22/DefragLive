@@ -70,6 +70,6 @@ def handle_discord(line_data):
    api.exec_command(f"say {reply_string}")
    return None
 
-def handle_stonk():
-
-def handle_crypto():
+# def handle_stonk():
+#
+# def handle_crypto():
