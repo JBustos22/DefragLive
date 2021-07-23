@@ -69,6 +69,8 @@ async def event_message(ctx):
             serverstate.IGNORE_IPS = []
             connect_ip = servers.get_most_popular_server()
             serverstate.connect(connect_ip)
+        elif cmd in ["reshade"]:
+            api.press_key("{F9}")
         elif cmd in ["next", "n"]:
             await serverstate.switch_spec('next', channel=ctx.channel)
             api.exec_command(f"cg_centertime 2;displaymessage 140 10 ^3{author} ^7has switched to ^3Next player")
@@ -117,9 +119,9 @@ async def event_message(ctx):
         elif cmd == "speedorig":
             api.exec_command(f"toggle df_drawSpeed 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Speedometer (hud element)")
         elif cmd == "gibs":
-            api.exec_command(f"toggle cg_gibs 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Gibs after kill")
+            api.exec_command(f"toggle cg_gibs 1 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Gibs after kill")
         elif cmd == "blood":
-            api.exec_command(f"toggle com_blood 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Blood after kill")
+            api.exec_command(f"toggle com_blood 1 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Blood after kill")
         elif cmd == "thirdperson":
             api.exec_command(f"toggle cg_thirdperson 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Thirdperson POV")
         elif cmd == "miniview":
