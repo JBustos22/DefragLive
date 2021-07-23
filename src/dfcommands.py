@@ -69,3 +69,7 @@ def handle_discord(line_data):
    reply_string = "^7Join our discord: ^3https://discord.q3df.run"
    api.exec_command(f"say {reply_string}")
    return None
+
+def handle_stonk():
+
+def handle_crypto():
