@@ -128,9 +128,11 @@ def start():
         try:
             if PAUSE_STATE:
                 raise Exception("Paused.")
+            elif not new_report_exists(config.INITIAL_REPORT_P):
+                raise Exception("Waiting for initial response")
 
             # Only refresh the STATE object if new data has been read and if state is not paused
-            while not new_report_exists(config.INITIAL_REPORT_P) and not PAUSE_STATE:
+            while True:
                 time.sleep(2)
 
                 if not PAUSE_STATE:
