@@ -2,7 +2,8 @@
 
 import api
 import requests
-supported_commands = ["nospec", "info", "help", "howmany", "clear", "discord", "whoisthebest"]
+from env import environ
+supported_commands = ["nospec", "info", "help", "howmany", "clear", "discord", "whoisthebest", "stonk"]
 
 
 def scan_for_command(message):
@@ -44,8 +45,8 @@ def handle_info(line_data):
 
 
 def handle_howmany(line_data):
-    client_id = "u8qaeps5664v7ddm7hgh42d9ynkanr"
-    client_secret = "mp8m7yb3nsgq9c7j2ifwnfcufac4c4"
+    client_id = environ['TWITCH_API']['client_id']
+    client_secret = environ['TWITCH_API']['client_secret']
     token_url = f"https://id.twitch.tv/oauth2/token?client_id={client_id}&client_secret={client_secret}&grant_type=client_credentials"
     r = requests.post(token_url)
     token = r.json()['access_token']
@@ -70,6 +71,30 @@ def handle_discord(line_data):
    api.exec_command(f"say {reply_string}")
    return None
 
-# def handle_stonk():
-#
-# def handle_crypto():
+
+def handle_stonk(line_data):
+    try:
+        line_list = line_data['content'].split()
+        stonk = line_list[1]
+        region = 'US'
+        headers = {
+            'x-rapidapi-key': environ['STONK_API']['key'],
+            'x-rapidapi-host': environ['STONK_API']['host']
+        }
+        url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/auto-complete"
+        querystring = {"q": stonk, "region": region}
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        symbol = response.json()['quotes'][0]['symbol']
+
+        url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v2/get-summary"
+        querystring = {"symbol": symbol, "region": region}
+        response = requests.request("GET", url, headers=headers, params=querystring)
+        short_name, symbol, exchange = [response.json()['quoteType'][i] for i in ('shortName', 'symbol', 'exchange')]
+        price, change = [response.json()['price'][i]['fmt'] for i in ('regularMarketPrice', 'regularMarketChangePercent')]
+        currency = response.json()['price']['currency']
+        color = "^1" if '-' in change else "^2"
+        change = change.replace('%',' p/c')
+        reply_string = f"^7{symbol}^3: {color}{price} {currency} ({change}) ^7{short_name} ({exchange})"
+    except:
+        reply_string = "Invalid input. Usage: ?stonk <symbol>"
+    return api.exec_command(f"say {reply_string}")

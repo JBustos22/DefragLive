@@ -11,5 +11,13 @@ environ = {
     "SVINFO_REPORT_NAME": "serverstate.txt",
     "CHANNEL": "",
     "WS_ADDRESS": "ws://localhost:5005",
-    "LOG_DIR_PATH": "C:\\Absolute\\Path\\To\\Logs\\Folder"
+    "LOG_DIR_PATH": "C:\\Absolute\\Path\\To\\Logs\\Folder",
+    "TWITCH_API": {
+        "client_id": "",
+        "client_secret": ""
+    },
+    "STONK_API": {
+        'key': "",
+        'host': ""
+    }
 }

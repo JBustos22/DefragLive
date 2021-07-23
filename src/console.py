@@ -113,33 +113,33 @@ def process_line(line):
         "timestamp": time.time()
     }
 
-    if line in {"Vote passed.", "RE_Shutdown( 0 )"}:
-        if not serverstate.PAUSE_STATE:
-            serverstate.PAUSE_STATE = True
-            logging.info("Game is loading. Pausing state.")
-
-    if 'called a vote:' in line:
-        # api.exec_command("say Vote detected. Should I vote yes or no? Send ?f1 for yes and ?f2 for no.")
-        pass
-
-    if 'Com_TouchMemory' in line or "report written to system/reports/initialstate.txt" in line:
-        if serverstate.CONNECTING:
-            time.sleep(1)
-            serverstate.CONNECTING = False
-        elif serverstate.VID_RESTARTING:
-            time.sleep(1)
-            logging.info("vid_restart done.")
-            serverstate.PAUSE_STATE = False
-            serverstate.VID_RESTARTING = False
-        elif serverstate.PAUSE_STATE:
-            time.sleep(1)
-            serverstate.PAUSE_STATE = False
-            logging.info("Game loaded. Continuing state.")
-            serverstate.STATE.say_connect_msg()
-
 
     # SERVERCOMMAND
+
     try:
+        if line in {"Vote passed.", "RE_Shutdown( 0 )"}:
+            if not serverstate.PAUSE_STATE:
+                serverstate.PAUSE_STATE = True
+                logging.info("Game is loading. Pausing state.")
+
+        if 'called a vote:' in line:
+            # api.exec_command("say Vote detected. Should I vote yes or no? Send ?f1 for yes and ?f2 for no.")
+            pass
+
+        if 'Com_TouchMemory' in line or "report written to system/reports/initialstate.txt" in line:
+            if serverstate.CONNECTING:
+                time.sleep(1)
+                serverstate.CONNECTING = False
+            elif serverstate.VID_RESTARTING:
+                time.sleep(1)
+                logging.info("vid_restart done.")
+                serverstate.PAUSE_STATE = False
+                serverstate.VID_RESTARTING = False
+            elif serverstate.PAUSE_STATE:
+                time.sleep(1)
+                serverstate.PAUSE_STATE = False
+                logging.info("Game loaded. Continuing state.")
+                serverstate.STATE.say_connect_msg()
         # sc_r = r"^\^5serverCommand:\s*(\d+?)\s*:\s*(.+?)$"
         # match = re.match(sc_r, line)
         #
