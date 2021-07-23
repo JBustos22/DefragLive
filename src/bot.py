@@ -19,6 +19,8 @@ from datetime import datetime
 import sys
 import pathlib
 
+USE_WHITELIST = 0
+
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
 # bot setup
@@ -166,7 +168,7 @@ async def event_message(ctx):
         # Mod commands, 166 ;wait; needs to stay, otherwise error msg appears and cl_noprint 1 is somehow triggered
         elif cmd == "brightness":
             whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
-            if author not in whitelisted_twitch_users and not ctx.author.is_mod:
+            if USE_WHITELIST and author not in whitelisted_twitch_users and not ctx.author.is_mod:
                 await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command. "
                                        f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
                 return
@@ -180,7 +182,7 @@ async def event_message(ctx):
                 await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
         elif cmd == "picmip":
             whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
-            if author not in whitelisted_twitch_users and not ctx.author.is_mod:
+            if USE_WHITELIST and author not in whitelisted_twitch_users and not ctx.author.is_mod:
                 await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command."
                                        f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
                 return
@@ -194,7 +196,7 @@ async def event_message(ctx):
                 await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
         elif cmd == "gamma":
             whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
-            if author not in whitelisted_twitch_users and not ctx.author.is_mod:
+            if USE_WHITELIST and author not in whitelisted_twitch_users and not ctx.author.is_mod:
                 await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command."
                                        f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
                 return
