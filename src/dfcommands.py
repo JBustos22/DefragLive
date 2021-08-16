@@ -3,7 +3,9 @@
 import api
 import requests
 from env import environ
-supported_commands = ["nospec", "info", "help", "howmany", "clear", "discord", "whoisthebest", "stonk"]
+import serverstate
+import logging
+supported_commands = ["nospec", "info", "help", "howmany", "clear", "discord", "whoisthebest", "stonk", "f1", "f2"]
 
 
 def scan_for_command(message):
@@ -42,6 +44,20 @@ def handle_info(line_data):
     api.exec_command(f"say {reply_string_1}")
     api.exec_command(f"say {reply_string_2}")
     return None
+
+
+def handle_f1(line_data):
+    if line_data["author"] not in serverstate.STATE.voter_names:
+        logging.info(f'received f1 from {line_data["author"]}.')
+        serverstate.STATE.voter_names.append(line_data["author"])
+        serverstate.STATE.vy_count += 1
+
+
+def handle_f2(line_data):
+    if line_data["author"] not in serverstate.STATE.voter_names:
+        logging.info(f'received f2 from {line_data["author"]}.')
+        serverstate.STATE.voter_names.append(line_data["author"])
+        serverstate.STATE.vn_count += 1
 
 
 def handle_howmany(line_data):

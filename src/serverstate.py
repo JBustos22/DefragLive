@@ -25,6 +25,7 @@ AFK_TIMEOUT = 40  # Switch after afk detected x consecutive times.
 IDLE_TIMEOUT = 5  # Alone in server timeout.
 INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
 STANDBY_TIME = 15  # Amount of time to standby in minutes
+VOTE_TALLY_TIME = 5  # Amount of time to wait while tallying votes
 
 
 STATE = None
@@ -55,6 +56,10 @@ class State:
             self.spec_ids.remove(self.bot_id)
         self.afk_ids = []
         self.connect_msg = None
+        self.vote_time = time.time()
+        self.vy_count = 0
+        self.vn_count = 0
+        self.voter_names = []
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -103,6 +108,37 @@ class State:
             api.exec_command(f"say {self.connect_msg}")
             self.connect_msg = None
 
+    def init_vote(self):
+        self.vote_active = True
+        self.vote_time = time.time()
+        self.voter_names = []
+        self.vy_count = 0
+        self.vn_count = 0
+
+    def handle_vote(self):
+        if time.time() - self.vote_time > VOTE_TALLY_TIME:
+            logging.info("Voting tally done.")
+            if self.vn_count > self.vy_count:
+                api.exec_command(f"say ^3{self.vy_count} ^2f1 ^7vs. ^3{self.vn_count} ^1f2^7. Voting ^3f2^7.")
+                logging.info(f"{self.vy_count} f1s vs. {self.vn_count} f2s. Voting f2.")
+                api.exec_command("vote no")
+            elif self.vy_count > self.vn_count:
+                api.exec_command(f"say ^3{self.vy_count} ^2f1 ^7vs. ^3{self.vn_count} ^1f2^7. Voting ^3f1^7.")
+                logging.info(f"{self.vy_count} f1s vs. {self.vn_count} f2s. Voting f1.")
+                api.exec_command("vote yes")
+            else:
+                api.exec_command(f"say ^3{self.vy_count} ^2f1 ^7vs. ^3{self.vn_count} ^1f2^7. No action.")
+                logging.info(f"{self.vy_count} f1s vs. {self.vn_count} f2s. Not voting.")
+
+            self.vote_time = 0
+            self.voter_names = []
+            self.vy_count = 0
+            self.vn_count = 0
+            self.vote_active = False
+        else:
+            return
+
+
 
 class Player:
     """
@@ -129,7 +165,7 @@ def start():
     while True:
         try:
             if PAUSE_STATE:
-                raise Exception("Paused.")
+                raise Exception("Paused")
 
             # Only refresh the STATE object if new data has been read and if state is not paused
             while not new_report_exists(config.INITIAL_REPORT_P) and not PAUSE_STATE:
@@ -139,15 +175,16 @@ def start():
                     api.exec_command("varmath color2 = $chsinfo(152);"  # Store inputs in color2
                                            "silent svinfo_report serverstate.txt", verbose=False)  # Write a new report
                 elif not VID_RESTARTING:
-                    raise Exception("State is paused.")
+                    raise Exception("Paused")
 
                 if new_report_exists(config.STATE_REPORT_P):
                     # Given that a new report exists, read this new data.
-                    server_info, players = get_svinfo_report(config.STATE_REPORT_P)
+                    server_info, players, num_players = get_svinfo_report(config.STATE_REPORT_P)
 
                     if bool(server_info):  # New data is not empty and valid. Update the state object.
                         STATE.players = players
                         STATE.update_info(server_info)
+                        STATE.num_players = num_players
                         validate_state()  # Check for nospec, self spec, afk, and any other problems.
                         if STATE.current_player is not None and STATE.current_player_id != STATE.bot_id:
                             curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
@@ -156,12 +193,15 @@ def start():
                             logging.info(curr_state)
                         prev_state = curr_state
                         display_player_name(STATE.current_player_id)
+                if getattr(STATE, 'vote_active', False):
+                    STATE.handle_vote()
         except Exception as e:
-            if e == 'Paused':
+            if e.args[0] == 'Paused':
                 pass
             else:
                 prev_state, curr_state = None, None
                 initialize_state()  # Handle the first state fetch. Some extra processing needs to be done this time.
+                logging.info(f"State failed: {e}")
             time.sleep(1)
 
 
@@ -192,7 +232,7 @@ def initialize_state():
                 raise Exception("Paused.")
 
             if new_report_exists(config.STATE_REPORT_P):  # New data detected
-                server_info, players = get_svinfo_report(config.STATE_REPORT_P)  # Read data
+                server_info, players, num_players = get_svinfo_report(config.STATE_REPORT_P)  # Read data
                 # Select player that contains this secret as their color1, this will be the bot player.
                 bot_player = [player for player in players if player.c1 == secret]
 
@@ -207,6 +247,7 @@ def initialize_state():
         # Create global server object
         STATE = State(secret, server_info, players, bot_id)
         STATE.current_player_id = bot_id
+        STATE.num_players = num_players
         STATE_INITIALIZED = True
         logging.info("State Initialized.")
     except:
@@ -324,13 +365,15 @@ def connect(ip, caller=None):
     global CONNECTING
     global IGNORE_IPS
 
-    IGNORE_IPS = []
     STATE_INITIALIZED = False
     logging.info(f"Connecting to {ip}...")
     PAUSE_STATE = True
     CONNECTING = True
+    STATE.idle_counter = 0
+    STATE.afk_counter = 0
     if caller is not None:
         STATE.connect_msg = f"^7Brought by ^3{caller}"
+        IGNORE_IPS = []
     api.exec_command("connect " + ip, verbose=False)
 
 
@@ -418,6 +461,7 @@ def get_svinfo_report(filename):
     global STATE
 
     with open(filename, "r") as svinfo_report_f:
+        num_players = 0
         lines = svinfo_report_f.readlines()
         info, ip = parse_svinfo_report(lines)
 
@@ -439,6 +483,7 @@ def get_svinfo_report(filename):
             player_data = info[header]
 
             players.append(Player(cli_id, player_data))
+            num_players += 1
             if player_data['t'] != '3':  # Filter out spectators out of followable ids.
                 if player_data['c1'] != 'nospec':  # Filter out nospec'd players out of followable ids
                     spec_ids.append(cli_id)
@@ -449,7 +494,7 @@ def get_svinfo_report(filename):
 
     server_info['spec_ids'] = spec_ids
     server_info['nospec_ids'] = nospec_ids
-    return server_info, players
+    return server_info, players, num_players
 
 
 def parse_svinfo_report(lines):

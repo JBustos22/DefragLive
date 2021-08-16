@@ -109,13 +109,13 @@ async def event_message(ctx):
             api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Clean POV")
         elif cmd == "sky":
             api.exec_command(f"toggle r_fastsky 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Sky")
-        elif cmd in ["vote", "f1", "f2"]:
-            if cmd != "vote":
-                arg = "yes" if cmd == "f1" else "no"
-            else:
-                arg = args[0]
-            api.press_key(config.get_bind(f"vote {arg}"))
-            api.exec_command(f"say ^3{author} ^7voted ^3{arg};cg_centertime 3;displaymessage 140 10 ^3{author} ^7voted ^3{arg}")
+        # elif cmd in ["vote", "f1", "f2"]:
+        #     if cmd != "vote":
+        #         arg = "yes" if cmd == "f1" else "no"
+        #     else:
+        #         arg = args[0]
+        #     api.press_key(config.get_bind(f"vote {arg}"))
+        #     api.exec_command(f"say ^3{author} ^7voted ^3{arg};cg_centertime 3;displaymessage 140 10 ^3{author} ^7voted ^3{arg}")
         elif cmd == "speedinfo":
             api.exec_command(f"toggle df_chs1_Info5 0 23;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Speedometer (chs info)")
         elif cmd == "speedorig":

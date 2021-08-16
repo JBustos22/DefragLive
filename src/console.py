@@ -117,14 +117,21 @@ def process_line(line):
     # SERVERCOMMAND
 
     try:
-        if line in {"Vote passed.", "RE_Shutdown( 0 )"}:
+        if line in {"VoteVote passed.", "RE_Shutdown( 0 )"}:
             if not serverstate.PAUSE_STATE:
                 serverstate.PAUSE_STATE = True
                 logging.info("Game is loading. Pausing state.")
 
         if 'called a vote:' in line:
-            # api.exec_command("say Vote detected. Should I vote yes or no? Send ?f1 for yes and ?f2 for no.")
-            pass
+            logging.info("Vote detected.")
+            if serverstate.STATE.num_players == 2:  # only bot and 1 other player in game, always f1
+                logging.info("1 other player in server, voting yes.")
+                api.exec_command("vote yes")
+                api.exec_command("say ^7Vote detected. Voted ^3f1^7.")
+            else:
+                logging.info("Multiple people in server, initiating vote tally.")
+                serverstate.STATE.init_vote()
+                api.exec_command("say ^7Vote detected. Should I vote yes or no? Send ^3?^7f1 for yes and ^3?^7f2 for no.")
 
         if 'Com_TouchMemory' in line or "report written to system/reports/initialstate.txt" in line:
             if serverstate.CONNECTING:
