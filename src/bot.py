@@ -201,11 +201,11 @@ async def event_message(ctx):
                                        f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
                 return
             value = float(args[0])
-            if 1.0 <= int(value) <= 1.6:
+            if 0.6 <= value <= 1.6:
                 logging.info("i did it..")
                 api.exec_command(f"r_gamma {value}")
             else:
-                await ctx.channel.send(f"{author}, the allowed values for gamma are 1.0-1.6")
+                await ctx.channel.send(f"{author}, the allowed values for gamma are 0.6-1.6")
 
         # Disabled. Possibly useful for the future:
 
