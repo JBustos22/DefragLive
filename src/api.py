@@ -2,6 +2,7 @@ import os
 import time
 import keyboard
 from pywinauto import application
+from env import environ
 import logging
 
 from ahk import AHK
@@ -12,6 +13,9 @@ import config
 AHK = AHK()
 CONSOLEWINDOW = "TwitchBot Console"
 ENGINEWINDOW = "TwitchBot Engine"
+
+SOUND_DELAY = 5
+SOUND_TIMER = 0.0
 
 
 class WindowNotFoundError(Exception):
@@ -25,7 +29,7 @@ def api_init():
 
     CONSOLE = AHK.run_script("WinShow," + CONSOLEWINDOW + \
                    "\nControlGet, console, Hwnd ,, Edit1, " + CONSOLEWINDOW + \
-                   "\nWinHide," + CONSOLEWINDOW + \
+                   #"\nWinHide," + CONSOLEWINDOW + \
                    "\nFileAppend, %console%, * ;", blocking=True)
     WINDOW = AHK.find_window(process=config.DF_EXE_PATH, title=b"TwitchBot Engine")
 
@@ -40,6 +44,22 @@ def exec_command(cmd, verbose=True):
     AHK.run_script("ControlSetText, , " + cmd.replace(',', '`,') + ", ahk_id " + CONSOLE+ \
                 "\nControlSend, , {Enter}, ahk_id " + CONSOLE, blocking=True)
 
+def play_sound(sound):
+    if not os.path.exists(environ['DF_DIR'] + f"music\\common\\{sound}"):
+        logging.info(f"Sound file {environ['DF_DIR']}music/common/{sound} not found.")
+        return
+
+    global SOUND_DELAY
+    global SOUND_TIMER
+
+    # If the sound is already playing, wait for SOUND_DELAY seconds
+    # unless it's a worldrecord sound, then play it immediatly
+    if time.time() >= SOUND_TIMER + SOUND_DELAY or sound == 'worldrecord.wav':
+        exec_command(f"play music/common/{sound}")
+        SOUND_TIMER = time.time()
+        return
+
+    logging.info(f"Sound is already playing, cancelling current request !")
 
 def press_key(key, verbose=True):
     try:

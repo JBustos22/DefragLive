@@ -270,7 +270,10 @@ async def event_message(ctx):
 
 
 def launch():
-    launch_ip = servers.get_most_popular_server()
+    if environ['DEVELOPMENT']:
+        launch_ip = servers.get_least_popular_server()
+    else:
+        launch_ip = servers.get_most_popular_server()
 
     if not os.path.isfile(config.DF_EXE_PATH):
         logging.info("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")

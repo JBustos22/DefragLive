@@ -93,6 +93,12 @@ def read(file_path: str):
 def message_to_id(msg):
     return blake2b(bytes(msg, "utf-8"), digest_size=8, salt=os.urandom(blake2b.SALT_SIZE)).hexdigest()
 
+# Not the most accurate way, but it works for most players
+# The only exception is when a player has (:) in their name
+def is_server_msg(line, msg):
+    data = line[:line.index(msg)]
+
+    return not ':' in data
 
 def process_line(line):
     """
@@ -117,12 +123,22 @@ def process_line(line):
     # SERVERCOMMAND
 
     try:
+        logging.info(line)
         if line in {"VoteVote passed.", "RE_Shutdown( 0 )"}:
             if not serverstate.PAUSE_STATE:
                 serverstate.PAUSE_STATE = True
                 logging.info("Game is loading. Pausing state.")
 
-        if 'called a vote:' in line:
+        if 'broke the server record with' in line and is_server_msg(line, 'broke the server record with'):
+            """ 
+                Maybe we can also add a display message with the player name and/or the record 
+                #playerName = line[:line.index(' broke the server record with')]
+                #playerRecord = line[line.index(' broke the server record with') + len(' broke the server record with'):]
+                #api.display_message("{playerName} broke the record with {playerRecord}")
+            """
+            api.play_sound("worldrecord.wav")
+
+        if 'called a vote:' in line and is_server_msg(line, 'called a vote:'):
             logging.info("Vote detected.")
             if serverstate.STATE.num_players == 2:  # only bot and 1 other player in game, always f1
                 logging.info("1 other player in server, voting yes.")

@@ -19,5 +19,6 @@ environ = {
     "STONK_API": {
         'key': "",
         'host': ""
-    }
+    },
+    "DEVELOPMENT": False # True if you're developing, False if you're using the production server
 }
