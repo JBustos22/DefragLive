@@ -123,7 +123,12 @@ def process_line(line):
     # SERVERCOMMAND
 
     try:
-        logging.info(line)
+        # Don't log if it's a report
+        if "report written to system/reports/initialstate.txt" in line or "report written to system/reports/serverstate.txt" in line:
+            pass
+        else:
+            logging.info(line)
+
         if line in {"VoteVote passed.", "RE_Shutdown( 0 )"}:
             if not serverstate.PAUSE_STATE:
                 serverstate.PAUSE_STATE = True
