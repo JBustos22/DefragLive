@@ -85,7 +85,7 @@ bot = commands.Bot(
 @bot.event
 async def event_ready():
     """Called once when the bot goes online."""
-    logging.info(f"{environ['BOT_NICK']} is online!")
+    logging.info(f"[CODE] {environ['BOT_NICK']} is online!")
     ws = bot._ws  # this is only needed to send messages within event_ready
     await ws.send_privmsg(df_channel, f"/me has landed!")
 
@@ -106,7 +106,7 @@ async def event_message(ctx):
         split_msg = message.split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
-        logging.info(f"TWITCH COMMAND RECEIVED: '{cmd}' from user '{author}'")
+        logging.info(f"[CODE] TWITCH COMMAND RECEIVED: '{cmd}' from user '{author}'")
 
         for command in TWITCH_CMDS:
             if cmd in command:
@@ -120,7 +120,7 @@ async def event_message(ctx):
 
         for word in blacklisted_words:
             if word in message:
-                logging.info(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                logging.info(f"[CODE] Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
                 return
 
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
@@ -131,7 +131,7 @@ async def event_message(ctx):
             author_color_char = author[0]
 
         api.exec_command(f"say ^{author_color_char}{author} ^2{message}")
-        logging.info("Chat message sent")
+        logging.info("[CODE] Chat message sent")
         time.sleep(debounce)
 
     elif message.startswith("**"):  # team chat bridge
@@ -140,7 +140,7 @@ async def event_message(ctx):
 
         for word in blacklisted_words:
             if word in message:
-                logging.info(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                logging.info(f"[CODE] Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
                 return
 
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
@@ -151,18 +151,18 @@ async def event_message(ctx):
             author_color_char = author[0]
 
         api.exec_command(f"say_team ^{author_color_char}{author} ^5{message}")
-        logging.info("Chat message sent")
+        logging.info("[CODE] Chat message sent")
         time.sleep(debounce)
 
     elif message.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
-        logging.info("proxy command received")
+        logging.info("[CODE] proxy command received")
         api.exec_command(message)
         time.sleep(debounce)
 
     elif  message.startswith("$"):  # viewer sound commands
         for sound_cmd in SOUND_CMDS:
             if message.startswith(sound_cmd):
-                logging.info(f"Sound command recieved ({sound_cmd})")
+                logging.info(f"[CODE] Sound command recieved ({sound_cmd})")
                 api.play_sound(sound_cmd.replace('$', '') + '.wav') #odfe appears to only support .wav format, not mp3, so we can hardcode it
                 time.sleep(debounce)
     return
@@ -175,7 +175,7 @@ def launch():
         launch_ip = servers.get_most_popular_server()
 
     if not os.path.isfile(config.DF_EXE_PATH):
-        logging.info("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
+        logging.info("[CODE] Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
         return None
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
@@ -264,7 +264,7 @@ def on_ws_message(msg):
             message_text = message_text[:message_text.index(";")]
 
         if message_text.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
-            logging.info("proxy command received")
+            logging.info("[CODE] proxy command received")
             api.exec_command(message_text)
             time.sleep(1)
         else:
@@ -322,9 +322,9 @@ if __name__ == "__main__":
     try:
         api.api_init()
         window_flag = True
-        logging.info("Found defrag window.")
+        logging.info("[CODE] Found defrag window.")
     except:
-        logging.info("Defrag not running, starting...")
+        logging.info("[CODE] Defrag not running, starting...")
         df_process = Process(target=launch)
         df_process.start()
         time.sleep(15)
@@ -353,13 +353,13 @@ if __name__ == "__main__":
             api.api_init()
             time.sleep(5)
             if not window_flag:
-                logging.info("Found defrag window.")
+                logging.info("[CODE] Found defrag window.")
                 window_flag = True
                 serverstate.PAUSE_STATE = False
         except api.WindowNotFoundError:
             if not serverstate.VID_RESTARTING:
                 window_flag = False
-                logging.info("Defrag window lost. Restarting...")
+                logging.info("[CODE] Defrag window lost. Restarting...")
                 df_process = Process(target=launch)
                 df_process.start()
                 console.STOP_CONSOLE = True

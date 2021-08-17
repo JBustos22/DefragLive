@@ -83,7 +83,7 @@ def read(file_path: str):
                 try:
                     handle_command(line_data)
                 except Exception as e:
-                    logging.info(f"Error occurred for in-game command {command}: {e}")
+                    logging.info(f"[CODE] Error occurred for in-game command {command}: {e}")
 
             if line_data["type"] in ["PRINT", "SAY", "ANNOUNCE"]:
                 CONSOLE_DISPLAY.append(line_data)
@@ -132,7 +132,7 @@ def process_line(line):
         if line in {"VoteVote passed.", "RE_Shutdown( 0 )"}:
             if not serverstate.PAUSE_STATE:
                 serverstate.PAUSE_STATE = True
-                logging.info("Game is loading. Pausing state.")
+                logging.info("[CODE] Game is loading. Pausing state.")
 
         if 'broke the server record with' in line and is_server_msg(line, 'broke the server record with'):
             """ 
@@ -144,13 +144,13 @@ def process_line(line):
             api.play_sound("worldrecord.wav")
 
         if 'called a vote:' in line and is_server_msg(line, 'called a vote:'):
-            logging.info("Vote detected.")
+            logging.info("[CODE] Vote detected.")
             if serverstate.STATE.num_players == 2:  # only bot and 1 other player in game, always f1
-                logging.info("1 other player in server, voting yes.")
+                logging.info("[CODE] 1 other player in server, voting yes.")
                 api.exec_command("vote yes")
                 api.exec_command("say ^7Vote detected. Voted ^3f1^7.")
             else:
-                logging.info("Multiple people in server, initiating vote tally.")
+                logging.info("[CODE] Multiple people in server, initiating vote tally.")
                 serverstate.STATE.init_vote()
                 api.exec_command("say ^7Vote detected. Should I vote yes or no? Send ^3?^7f1 for yes and ^3?^7f2 for no.")
 
@@ -160,13 +160,13 @@ def process_line(line):
                 serverstate.CONNECTING = False
             elif serverstate.VID_RESTARTING:
                 time.sleep(1)
-                logging.info("vid_restart done.")
+                logging.info("[CODE] vid_restart done.")
                 serverstate.PAUSE_STATE = False
                 serverstate.VID_RESTARTING = False
             elif serverstate.PAUSE_STATE:
                 time.sleep(1)
                 serverstate.PAUSE_STATE = False
-                logging.info("Game loaded. Continuing state.")
+                logging.info("[CODE] Game loaded. Continuing state.")
                 serverstate.STATE.say_connect_msg()
         # sc_r = r"^\^5serverCommand:\s*(\d+?)\s*:\s*(.+?)$"
         # match = re.match(sc_r, line)
@@ -286,7 +286,7 @@ def get_log_line(within, end_type=None, end_author=None, end_content=None, end_c
 
 
 def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_content_fuzzy=True, delay=0.5, abort_after=20.0):
-    logging.info("WAIT FOR LOG PARSED", start_ts, end_type, end_author, end_content, end_content_fuzzy, delay)
+    logging.info("[CODE] WAIT FOR LOG PARSED", start_ts, end_type, end_author, end_content, end_content_fuzzy, delay)
 
     exec_start_ts = time.time()
 
@@ -298,11 +298,11 @@ def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_c
     # Check initial slice
     slice = [line for line in LOG if line["timestamp"] > start_ts]
 
-    logging.info("INITIAL", slice)
+    logging.info("[CODE] INITIAL", slice)
 
     for line in slice:
         if check_line(line, end_type, end_author, end_content, end_content_fuzzy):
-            logging.info("FOUND", line)
+            logging.info("[CODE] FOUND", line)
             return line
 
     while True:
@@ -318,11 +318,11 @@ def wait_log(start_ts=0, end_type=None, end_author=None, end_content=None, end_c
 
         slice = LOG[length : length_new]
 
-        logging.info("MORE", slice)
+        logging.info("[CODE] MORE", slice)
 
         for line in slice:
             if check_line(line, end_type, end_author, end_content, end_content_fuzzy):
-                logging.info("FOUND", line)
+                logging.info("[CODE] FOUND", line)
                 return line
 
         time.sleep(delay)

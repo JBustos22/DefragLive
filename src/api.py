@@ -46,14 +46,14 @@ def api_init():
 
 def exec_command(cmd, verbose=True):
     if verbose:
-        logging.info(f"Execing command {cmd}")
+        logging.info(f"[CODE] Execing command {cmd}")
     # send the text to the console window, escape commas (must be `, to show up in chat)
     AHK.run_script("ControlSetText, , " + cmd.replace(',', '`,') + ", ahk_id " + CONSOLE+ \
                 "\nControlSend, , {Enter}, ahk_id " + CONSOLE, blocking=True)
 
 def play_sound(sound):
     if not os.path.exists(environ['DF_DIR'] + f"music\\common\\{sound}"):
-        logging.info(f"Sound file {environ['DF_DIR']}music/common/{sound} not found.")
+        logging.info(f"[CODE] Sound file {environ['DF_DIR']}music/common/{sound} not found.")
         return
 
     global SOUND_DELAY
@@ -66,15 +66,15 @@ def play_sound(sound):
         SOUND_TIMER = time.time()
         return
 
-    logging.info(f"Sound is already playing, cancelling current request !")
+    logging.info(f"[CODE] Sound is already playing, cancelling current request !")
 
 def press_key(key, verbose=True):
     try:
         if verbose:
-            logging.info(f"Pressing key {key}")
+            logging.info(f"[CODE] Pressing key {key}")
         WINDOW.send(key, blocking=True, press_duration=30)
     except AttributeError:
-        logging.info(f"Window not active. {key} was not sent to the client.")
+        logging.info(f"[CODE] Window not active. {key} was not sent to the client.")
 
 
 def display_message(message, time=3, y_pos=140, size=10):
@@ -84,8 +84,8 @@ def display_message(message, time=3, y_pos=140, size=10):
 # duration in seconds
 def hold_key(x, duration):
     try:
-        logging.info(f"Holding {x} for {duration} seconds")
+        logging.info(f"[CODE] Holding {x} for {duration} seconds")
 
         WINDOW.send(x, blocking=True, press_duration=duration * 1000)
     except AttributeError:
-        logging.info(f"Window not active. {x} was not sent to the client.")
+        logging.info(f"[CODE] Window not active. {x} was not sent to the client.")
