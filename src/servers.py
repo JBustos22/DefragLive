@@ -114,14 +114,14 @@ def get_next_active_server(ignore_list):
         if ':' not in ignore_ip:
             ignore_ip += ':27960'
 
-    min_plyr_qty = 0
+    max_plyr_qty = 0
     max_plyr_ip = ""
 
     for ip_addr, data in servers_data.items():
         active_players = get_active_players(data)
         player_qty = len(active_players)
-        if player_qty > min_plyr_qty and ip_addr not in ignore_list:
-            min_plyr_qty = player_qty
+        if player_qty > max_plyr_qty and ip_addr not in ignore_list:
+            max_plyr_qty = player_qty
             max_plyr_ip = ip_addr
 
     return max_plyr_ip
