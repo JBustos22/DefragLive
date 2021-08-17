@@ -14,7 +14,9 @@ AHK = AHK()
 CONSOLEWINDOW = "TwitchBot Console"
 ENGINEWINDOW = "TwitchBot Engine"
 
-SOUND_DELAY = 5
+# delay between sounds, used to prevent overlapping sounds
+# could be set to zero if u don't care about sound overlapping (maybe viewer should be able to spam holy or 4ity or whatever)
+SOUND_DELAY = 1
 SOUND_TIMER = 0.0
 
 

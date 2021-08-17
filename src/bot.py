@@ -23,6 +23,14 @@ USE_WHITELIST = 0
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
 
+# To add any sound command, add the command name to the list of commands
+# then add the sound file to the music/common/ directory in the /defrag/ folder
+# Note: sound file name music be the same as command name (without $)
+SOUND_CMDS = [
+    '$4ity',
+    '$holy'
+]
+
 # bot setup
 bot = commands.Bot(
     irc_token=environ['TMI_TOKEN'],
@@ -266,6 +274,12 @@ async def event_message(ctx):
         api.exec_command(message)
         time.sleep(debounce)
 
+    elif  message.startswith("$"):  # viewer sound commands
+        for sound_cmd in SOUND_CMDS:
+            if message.startswith(sound_cmd):
+                logging.info(f"Sound command recieved ({sound_cmd})")
+                api.play_sound(sound_cmd.replace('$', '') + '.wav') #odfe appears to only support .wav format, not mp3, so we can hardcode it
+                time.sleep(debounce)
     return
 
 
