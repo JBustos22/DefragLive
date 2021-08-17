@@ -112,7 +112,6 @@ async def event_message(ctx):
             if cmd in command:
                 twitch_function = getattr(twitch_commands, command[0])
                 await twitch_function(ctx, author, args)
-
         time.sleep(debounce)
 
     elif message.startswith(">") or message.startswith("<"):  # chat bridge

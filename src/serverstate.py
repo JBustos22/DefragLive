@@ -473,7 +473,7 @@ def get_svinfo_report(filename):
             server_info['ip'] = ip
         else:
             time.sleep(5)
-            return None, None
+            return None, None, None
         players, spec_ids, nospec_ids = [], [], []
 
     for header in info:
