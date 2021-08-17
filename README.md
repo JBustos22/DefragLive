@@ -3,7 +3,7 @@ An interface between Twitch chat and DeFRaG.
 
 ## Todo List
 - [x] Added announcer sounds with commands
-- [ ] Check if commands such as (called a vote) are from players or server.
+- [x] Check if commands such as (called a vote) are from players or server. (Finished, but not guaranteed )
 - [ ] On connect, PM each nospec player a reminder that they have nospec on. Use /tell client id msg
 - [ ] Refactor bot.py to remove the 'elif' galore
 - [ ] Integrate forever-free API for ?stonks. Yahoo api is good but only 500 /mo hits free. Look at coingecko for crypto
