@@ -68,6 +68,24 @@ def get_most_popular_server():
 
     return max_plyr_ip
 
+def get_least_popular_server():
+    """ Returns the IP of the server with the least players, used only for development """
+    servers_data = scrape_servers_data()
+
+    servers_data = apply_whitelist(servers_data)
+
+    min_plyr_qty = 9999
+    min_plyr_ip = ""
+
+    for ip_addr, data in servers_data.items():
+        active_players = get_active_players(data)
+        player_qty = len(active_players)
+        if player_qty < min_plyr_qty:
+            min_plyr_qty = player_qty
+            min_plyr_ip = ip_addr
+
+    return min_plyr_ip
+
 
 def get_active_players(data):
     """Returns the amount of *active* players. Meaning player count without spectators or nospeccers"""

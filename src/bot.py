@@ -18,10 +18,60 @@ import logging
 from datetime import datetime
 import sys
 import pathlib
-
-USE_WHITELIST = 0
+import twitch_commands
 
 df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] != "" else input("Your twitch channel name: ")
+
+# To add any sound command, add the command name to the list of commands
+# then add the sound file to the music/common/ directory in the /defrag/ folder
+# Note: sound file name music be the same as command name (without $)
+SOUND_CMDS = [
+    '$4ity',
+    '$holy'
+]
+
+# Twitch commands that start with (?), to add a command
+# add it as an array inside this array, where multiple entries are aliases, and the first entry is the actual command
+# also add the function of the command inside twitch_commands.py (command function must be named as the first entry of your command)
+TWITCH_CMDS = [
+    ["restart"],
+    ["reconnect"],
+    ["triggers"],
+    ["clips"],
+    ["clear"],
+    ["lagometer"],
+    ["snaps"],
+    ["fixchat"],
+    ["cgaz"],
+    ["nodraw"],
+    ["angles"],
+    ["obs"],
+    ["drawgun"],
+    ["clean"],
+    ["sky"],
+    ["speedinfo"],
+    ["speedorig"],
+    ["gibs"],
+    ["blood"],
+    ["thirdperson"],
+    ["miniview"],
+    ["inputs"],
+    ["slick"],
+    ["n1"],
+    ["map"],
+    ["check"],
+    ["speclist"],
+    ["spec"],
+    ["brightness"],
+    ["picmip"],
+    ["gamma"],
+    ["connect", "c"],
+    ["reshade"],
+    ["next", "n"],
+    ["prev", "p"],
+    ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"],
+    ["server", "sv"]
+]
 
 # bot setup
 bot = commands.Bot(
@@ -35,7 +85,7 @@ bot = commands.Bot(
 @bot.event
 async def event_ready():
     """Called once when the bot goes online."""
-    logging.info(f"{environ['BOT_NICK']} is online!")
+    logging.info(f"[CODE] {environ['BOT_NICK']} is online!")
     ws = bot._ws  # this is only needed to send messages within event_ready
     await ws.send_privmsg(df_channel, f"/me has landed!")
 
@@ -56,169 +106,12 @@ async def event_message(ctx):
         split_msg = message.split(' ')
         cmd = split_msg[0]
         args = split_msg[1:] if len(split_msg) > 0 else None
-        logging.info(f"TWITCH COMMAND RECEIVED: '{cmd}' from user '{author}'")
+        logging.info(f"[CODE] TWITCH COMMAND RECEIVED: '{cmd}' from user '{author}'")
 
-        if cmd in ["connect", "c"]:
-            ip = args[0]
-            if ip.split(':')[0] not in config.get_list("whitelist_servers"):
-                msg = f"Server \"{ip}\" is not whitelisted. Refusing connection."
-                api.exec_command(f"cg_centertime 5;displaymessage 140 8 ^3{author} ^1{msg};")
-                logging.info(msg)
-                await ctx.channel.send(msg)
-                return
-            serverstate.connect(ip, author)
-        elif cmd == "restart":
-            serverstate.IGNORE_IPS = []
-            connect_ip = servers.get_most_popular_server()
-            serverstate.connect(connect_ip)
-        elif cmd in ["reshade"]:
-            api.press_key("{F9}")
-        elif cmd in ["next", "n"]:
-            await serverstate.switch_spec('next', channel=ctx.channel)
-            api.exec_command(f"cg_centertime 2;displaymessage 140 10 ^3{author} ^7has switched to ^3Next player")
-        elif cmd in ["prev", "p"]:
-            await serverstate.switch_spec('prev', channel=ctx.channel)
-            api.exec_command(f"cg_centertime 2;displaymessage 140 10 ^3{author} ^7has switched to ^3Previous player")
-        elif cmd in ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"]:
-            api.hold_key(config.get_bind("+scores"), 4.5)
-        elif cmd == "reconnect":
-            serverstate.connect(serverstate.STATE.ip)
-        elif cmd == "triggers":
-            api.exec_command(f"toggle r_rendertriggerBrushes 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Render Triggers")
-        elif cmd == "clips":
-            api.exec_command(f"toggle r_renderClipBrushes 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Render Clips")
-        elif cmd == "clear":
-            api.exec_command(f"clear;cg_centertime 3;cg_centertime 3;displaymessage 140 10 ^3{author} ^1Ingame chat has been erased ^3:(")
-        elif cmd == "lagometer":
-            api.exec_command(f"toggle cg_lagometer 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Lagometer")
-        elif cmd == "snaps":
-            api.exec_command(f"toggle mdd_snap 0 3;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3snaps hud")
-        elif cmd == "fixchat":
-            api.exec_command(f"cl_noprint 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has fixed: ^3ingame chat")
-        elif cmd == "cgaz":
-            api.exec_command(f"toggle mdd_cgaz 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Cgaz hud")
-        elif cmd == "nodraw":
-            api.exec_command(f"toggle df_mp_NoDrawRadius 100 100000;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Players visibility")
-        elif cmd == "angles":
-            api.exec_command(f"toggle df_chs1_Info6 0 40;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Weapon angles")
-        elif cmd == "obs":
-            api.exec_command(f"toggle df_chs1_Info7 0 50;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3OverBounces")
-        elif cmd == "drawgun":
-            api.exec_command(f"toggle cg_drawgun 1 2;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Gun movement")
-        elif cmd == "clean":
-            api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Clean POV")
-        elif cmd == "sky":
-            api.exec_command(f"toggle r_fastsky 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Sky")
-        # elif cmd in ["vote", "f1", "f2"]:
-        #     if cmd != "vote":
-        #         arg = "yes" if cmd == "f1" else "no"
-        #     else:
-        #         arg = args[0]
-        #     api.press_key(config.get_bind(f"vote {arg}"))
-        #     api.exec_command(f"say ^3{author} ^7voted ^3{arg};cg_centertime 3;displaymessage 140 10 ^3{author} ^7voted ^3{arg}")
-        elif cmd == "speedinfo":
-            api.exec_command(f"toggle df_chs1_Info5 0 23;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Speedometer (chs info)")
-        elif cmd == "speedorig":
-            api.exec_command(f"toggle df_drawSpeed 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Speedometer (hud element)")
-        elif cmd == "gibs":
-            api.exec_command(f"toggle cg_gibs 1 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Gibs after kill")
-        elif cmd == "blood":
-            api.exec_command(f"toggle com_blood 1 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Blood after kill")
-        elif cmd == "thirdperson":
-            api.exec_command(f"toggle cg_thirdperson 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Thirdperson POV")
-        elif cmd == "miniview":
-            api.exec_command(f"toggle df_ghosts_MiniviewDraw 0 6;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Miniview")
-        elif cmd == "inputs":
-            api.exec_command(f"toggle df_chs0_draw 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Inputs (WASD...)")
-        elif cmd == "slick":
-            api.exec_command(f"toggle r_renderSlickSurfaces 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Slick highlighted")
-        elif cmd == "n1":
-            api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117)^2!")
-        elif cmd == "map":
-            api.exec_command(f"cg_centertime 4;displaymessage 140 10 ^7The current map is: ^3{serverstate.STATE.mapname};")
-            msg = f"The current map is: {serverstate.STATE.mapname}"
-            await ctx.channel.send(msg)
-        elif cmd == "check":
-            api.exec_command(f"r_mapoverbrightbits;r_gamma")
-        elif cmd == "speclist":
-            msg = f"Watchable players:" \
-                  f" {serverstate.STATE.get_specable_players()} " \
-                  f"-- Do ?spec # to spectate a specific player, where # is their id number."
-            await ctx.channel.send(msg)
-            api.hold_key(config.get_bind("+scores"), 4.5)
-
-            if len(serverstate.STATE.nospec_ids) > 0:
-                nospec_msg = f"NOTE: " \
-                       f"The following player{'s' if len(serverstate.STATE.nospec_ids) > 1 else ''} " \
-                       f"{'have' if len(serverstate.STATE.nospec_ids) > 1 else 'has'} disabled spec permissions: " \
-                       f"{serverstate.STATE.get_nospec_players()}"
-                await ctx.channel.send(nospec_msg)
-
-        elif cmd == "spec":
-            follow_id = args[0]
-            msg = serverstate.spectate_player(follow_id)
-            await ctx.channel.send(msg)
-            time.sleep(1)
-            api.exec_command(f"cg_centertime 3;varcommand displaymessage 140 10 ^3{author} ^7has switched to $chsinfo(117)")
-
-        elif cmd == "server" or cmd == "sv":
-            msg = f"The current server is \"{serverstate.STATE.hostname}\" ({serverstate.STATE.ip})"
-            await ctx.channel.send(msg)
-
-        # Mod commands, 166 ;wait; needs to stay, otherwise error msg appears and cl_noprint 1 is somehow triggered
-        elif cmd == "brightness":
-            whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
-            if USE_WHITELIST and author not in whitelisted_twitch_users and not ctx.author.is_mod:
-                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command. "
-                                       f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
-                return
-            value = args[0]
-            if value.isdigit() and (0 < int(value) <= 5):
-                logging.info("vid_restarting...")
-                serverstate.VID_RESTARTING = True
-                serverstate.PAUSE_STATE = True
-                api.exec_command(f"r_mapoverbrightbits {value};vid_restart")
-            else:
-                await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
-        elif cmd == "picmip":
-            whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
-            if USE_WHITELIST and author not in whitelisted_twitch_users and not ctx.author.is_mod:
-                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command."
-                                       f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
-                return
-            value = args[0]
-            if value.isdigit() and (0 <= int(value) <= 6):
-                logging.info("vid_restarting..")
-                serverstate.VID_RESTARTING = True
-                serverstate.PAUSE_STATE = True
-                api.exec_command(f"r_picmip {value};vid_restart")
-            else:
-                await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
-        elif cmd == "gamma":
-            whitelisted_twitch_users = config.get_list('whitelist_twitchusers')
-            if USE_WHITELIST and author not in whitelisted_twitch_users and not ctx.author.is_mod:
-                await ctx.channel.send(f"{author}, you do not have the correct permissions to use this command."
-                                       f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
-                return
-            value = float(args[0])
-            if 0.6 <= value <= 1.6:
-                logging.info("i did it..")
-                api.exec_command(f"r_gamma {value}")
-            else:
-                await ctx.channel.send(f"{author}, the allowed values for gamma are 0.6-1.6")
-
-        # Disabled. Possibly useful for the future:
-
-        # elif cmd == "cgaz":
-        #     mode = args[0] if len(args) > 0 and 0 < int(args[0]) <= 15 else "toggle"
-        #     if mode == "toggle":
-        #         api.press_key(config.get_bind("toggle mdd_cgaz 0 1"))
-        #     else:
-        #         api.exec_command(f"df_hud_cgaz {mode}")
-
-        # elif cmd == "cv" and "kick" not in message:
-        #     api.exec_command(f"{message}")
-
+        for command in TWITCH_CMDS:
+            if cmd in command:
+                twitch_function = getattr(twitch_commands, command[0])
+                await twitch_function(ctx, author, args)
         time.sleep(debounce)
 
     elif message.startswith(">") or message.startswith("<"):  # chat bridge
@@ -227,7 +120,7 @@ async def event_message(ctx):
 
         for word in blacklisted_words:
             if word in message:
-                logging.info(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                logging.info(f"[CODE] Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
                 return
 
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
@@ -238,7 +131,7 @@ async def event_message(ctx):
             author_color_char = author[0]
 
         api.exec_command(f"say ^{author_color_char}{author} ^2{message}")
-        logging.info("Chat message sent")
+        logging.info("[CODE] Chat message sent")
         time.sleep(debounce)
 
     elif message.startswith("**"):  # team chat bridge
@@ -247,7 +140,7 @@ async def event_message(ctx):
 
         for word in blacklisted_words:
             if word in message:
-                logging.info(f"Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
+                logging.info(f"[CODE] Blacklisted word '{word}' detected in message \"{message}\" by \"{author}\". Aborting message.")
                 return
 
         if author.lower() == 'nightbot'.lower():  # ignore twitch Nightbot's name
@@ -258,22 +151,31 @@ async def event_message(ctx):
             author_color_char = author[0]
 
         api.exec_command(f"say_team ^{author_color_char}{author} ^5{message}")
-        logging.info("Chat message sent")
+        logging.info("[CODE] Chat message sent")
         time.sleep(debounce)
 
     elif message.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
-        logging.info("proxy command received")
+        logging.info("[CODE] proxy command received")
         api.exec_command(message)
         time.sleep(debounce)
 
+    elif  message.startswith("$"):  # viewer sound commands
+        for sound_cmd in SOUND_CMDS:
+            if message.startswith(sound_cmd):
+                logging.info(f"[CODE] Sound command recieved ({sound_cmd})")
+                api.play_sound(sound_cmd.replace('$', '') + '.wav') #odfe appears to only support .wav format, not mp3, so we can hardcode it
+                time.sleep(debounce)
     return
 
 
 def launch():
-    launch_ip = servers.get_most_popular_server()
+    if environ['DEVELOPMENT']:
+        launch_ip = servers.get_least_popular_server()
+    else:
+        launch_ip = servers.get_most_popular_server()
 
     if not os.path.isfile(config.DF_EXE_PATH):
-        logging.info("Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
+        logging.info("[CODE] Could not find engine or it was not provided. You will have to start the engine and the bot manually. ")
         return None
 
     # Make sure to set proper CWD when using subprocess.Popen from another directory
@@ -362,7 +264,7 @@ def on_ws_message(msg):
             message_text = message_text[:message_text.index(";")]
 
         if message_text.startswith("!"):  # proxy mod commands (!top, !rank, etc.)
-            logging.info("proxy command received")
+            logging.info("[CODE] proxy command received")
             api.exec_command(message_text)
             time.sleep(1)
         else:
@@ -420,9 +322,9 @@ if __name__ == "__main__":
     try:
         api.api_init()
         window_flag = True
-        logging.info("Found defrag window.")
+        logging.info("[CODE] Found defrag window.")
     except:
-        logging.info("Defrag not running, starting...")
+        logging.info("[CODE] Defrag not running, starting...")
         df_process = Process(target=launch)
         df_process.start()
         time.sleep(15)
@@ -451,13 +353,13 @@ if __name__ == "__main__":
             api.api_init()
             time.sleep(5)
             if not window_flag:
-                logging.info("Found defrag window.")
+                logging.info("[CODE] Found defrag window.")
                 window_flag = True
                 serverstate.PAUSE_STATE = False
         except api.WindowNotFoundError:
             if not serverstate.VID_RESTARTING:
                 window_flag = False
-                logging.info("Defrag window lost. Restarting...")
+                logging.info("[CODE] Defrag window lost. Restarting...")
                 df_process = Process(target=launch)
                 df_process.start()
                 console.STOP_CONSOLE = True
