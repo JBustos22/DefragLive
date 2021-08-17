@@ -29,10 +29,15 @@ def api_init():
     global CONSOLE
     global WINDOW
 
-    CONSOLE = AHK.run_script("WinShow," + CONSOLEWINDOW + \
+    if environ["DEVELOPMENT"]:
+        CONSOLE = AHK.run_script("WinShow," + CONSOLEWINDOW + \
                    "\nControlGet, console, Hwnd ,, Edit1, " + CONSOLEWINDOW + \
-                   #"\nWinHide," + CONSOLEWINDOW + \
                    "\nFileAppend, %console%, * ;", blocking=True)
+    else:
+        CONSOLE = AHK.run_script("WinShow," + CONSOLEWINDOW + \
+                    "\nControlGet, console, Hwnd ,, Edit1, " + CONSOLEWINDOW + \
+                    "\nWinHide," + CONSOLEWINDOW + \
+                    "\nFileAppend, %console%, * ;", blocking=True)
     WINDOW = AHK.find_window(process=config.DF_EXE_PATH, title=b"TwitchBot Engine")
 
     if CONSOLE is None or WINDOW is None:
