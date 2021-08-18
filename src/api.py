@@ -62,7 +62,7 @@ def play_sound(sound):
     # If the sound is already playing, wait for SOUND_DELAY seconds
     # unless it's a worldrecord sound, then play it immediatly
     if time.time() >= SOUND_TIMER + SOUND_DELAY or sound == 'worldrecord.wav':
-        exec_command(f"play music/common/{sound}")
+        exec_command(f"music music/common/{sound} 1")
         SOUND_TIMER = time.time()
         return
 
