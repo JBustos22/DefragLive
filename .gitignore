@@ -130,3 +130,7 @@ dmypy.json
 
 src/env.py
 logs/
+
+storage/*.db
+src/test.py
+idea.txt
