@@ -17,6 +17,8 @@ import config
 import os
 import servers
 import logging
+import threading
+import mapdata
 
 
 # Configurable variables, Strike = 2seconds
@@ -36,6 +38,8 @@ VID_RESTARTING = False
 STATE_INITIALIZED = False
 LAST_REPORT_TIME = time.time()
 LAST_INIT_REPORT_TIME = time.time()
+
+mapdata_thread = threading.Thread(target=mapdata.mapdataHook, daemon=True)
 
 
 class State:
@@ -252,6 +256,9 @@ def initialize_state():
         logging.info("[CODE] State Initialized.")
     except:
         return False
+
+    if not mapdata_thread.is_alive():
+        mapdata_thread.start()
 
     return True
 
