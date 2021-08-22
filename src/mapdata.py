@@ -160,6 +160,9 @@ def mapdataHook():
                         cmd += ";" + SAVED_CMDS[key]['cmd'] + " " + str(data[key])
                     else:
                         cmd += ";" + SAVED_CMDS[key]['cmd'] + " " + str(SAVED_CMDS[key]['default'])
+            else:
+                for key, value in SAVED_CMDS.items():
+                    cmd += ";" + SAVED_CMDS[key]['cmd'] + " " + str(SAVED_CMDS[key]['default'])
 
             api.exec_command(cmd)
 
