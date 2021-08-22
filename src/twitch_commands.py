@@ -17,6 +17,7 @@ import logging
 from datetime import datetime
 import sys
 import pathlib
+from mapdata import MapData
 
 USE_WHITELIST = 0
 
@@ -85,10 +86,13 @@ async def cgaz(ctx, author, args):
 
 async def nodraw(ctx, author, args):
     api.exec_command(f"toggle df_mp_NoDrawRadius 100 100000;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Players visibility")
+    MapData.toggle(serverstate.STATE.mapname, 'nodraw', 100000, 100)
+    
 
 
 async def angles(ctx, author, args):
     api.exec_command(f"toggle df_chs1_Info6 0 40;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Weapon angles")
+    MapData.toggle(serverstate.STATE.mapname, 'angles', 40, 0)
 
 
 async def obs(ctx, author, args):
@@ -97,6 +101,7 @@ async def obs(ctx, author, args):
 
 async def drawgun(ctx, author, args):
     api.exec_command(f"toggle cg_drawgun 1 2;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Gun movement")
+    MapData.toggle(serverstate.STATE.mapname, 'drawgun', 2, 1)
 
 
 async def clean(ctx, author, args):
@@ -193,6 +198,7 @@ async def brightness(ctx, author, args):
         serverstate.VID_RESTARTING = True
         serverstate.PAUSE_STATE = True
         api.exec_command(f"r_mapoverbrightbits {value};vid_restart")
+        MapData.save(serverstate.STATE.mapname, 'brightness', value)
     else:
         await ctx.channel.send(f" {author}, the valid values for brightness are 1-5.")
 
@@ -209,6 +215,7 @@ async def picmip(ctx, author, args):
         serverstate.VID_RESTARTING = True
         serverstate.PAUSE_STATE = True
         api.exec_command(f"r_picmip {value};vid_restart")
+        MapData.save(serverstate.STATE.mapname, 'picmip', value)
     else:
         await ctx.channel.send(f"{author}, the allowed values for picmip are 0-5.")
 
@@ -223,5 +230,6 @@ async def gamma(ctx, author, args):
     if 1.0 <= int(value) <= 1.6:
         logging.info("[CODE] i did it..")
         api.exec_command(f"r_gamma {value}")
+        MapData.save(serverstate.STATE.mapname, 'gamma', value)
     else:
         await ctx.channel.send(f"{author}, the allowed values for gamma are 1.0-1.6")
