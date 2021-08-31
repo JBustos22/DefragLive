@@ -71,7 +71,8 @@ TWITCH_CMDS = [
     ["next", "n"],
     ["prev", "p"],
     ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"],
-    ["server", "sv"]
+    ["server", "sv"],
+    ["ip"]
 ]
 
 # bot setup

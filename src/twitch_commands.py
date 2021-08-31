@@ -233,3 +233,7 @@ async def gamma(ctx, author, args):
         MapData.save(serverstate.STATE.mapname, 'gamma', value)
     else:
         await ctx.channel.send(f"{author}, the allowed values for gamma are 1.0-1.6")
+
+
+async def ip(ctx, author, args):
+    api.exec_command(f"cg_centertime 5;displaymessage 140 8 Current Ip: ^1{serverstate.STATE.ip};")
