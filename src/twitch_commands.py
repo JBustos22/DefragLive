@@ -38,6 +38,10 @@ async def restart(ctx, author, args):
     serverstate.connect(connect_ip)
 
 
+async def reconnect(ctx, author, args):
+    api.exec_command(f"reconnect")
+
+
 async def reshade(ctx, author, args):
     api.press_key("{F9}")
 
