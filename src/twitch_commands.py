@@ -231,7 +231,7 @@ async def gamma(ctx, author, args):
                                 f"If you wanna be whitelisted to use such a command, please contact neyo#0382 on discord.")
         return
     value = float(args[0])
-    if 1.0 <= int(value) <= 1.6:
+    if 0.5 <= (value) <= 1.6:
         logging.info("[CODE] i did it..")
         api.exec_command(f"r_gamma {value}")
         MapData.save(serverstate.STATE.mapname, 'gamma', value)
