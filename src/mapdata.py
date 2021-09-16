@@ -33,11 +33,6 @@ SAVED_CMDS = {
         "cmd": "cg_drawgun",
         "default": 1
     },
-}
-
-
-# brightness and picmip require vid_restarting, not sure how to handle it
-"""
     "brightness": {
         "cmd": "r_mapoverbrightbits",
         "default": 2
@@ -46,7 +41,8 @@ SAVED_CMDS = {
         "cmd": "r_picmip",
         "default": 0
     }
-"""
+}
+
 
 CURRENT_MAP = None
 
@@ -164,6 +160,6 @@ def mapdataHook():
                 for key, value in SAVED_CMDS.items():
                     cmd += ";" + SAVED_CMDS[key]['cmd'] + " " + str(SAVED_CMDS[key]['default'])
 
-            api.exec_command(cmd)
+            api.exec_command(cmd + "; vid_restart")
 
         time.sleep(4)
