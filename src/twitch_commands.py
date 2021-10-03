@@ -198,7 +198,7 @@ async def brightness(ctx, author, args):
         return
     value = args[0]
     if value.isdigit() and (0 < int(value) <= 5):
-        logging.info("[CODE] vid_restarting...")
+        logging.info("vid_restarting...")
         serverstate.VID_RESTARTING = True
         serverstate.PAUSE_STATE = True
         api.exec_command(f"r_mapoverbrightbits {value};vid_restart")
@@ -215,7 +215,7 @@ async def picmip(ctx, author, args):
         return
     value = args[0]
     if value.isdigit() and (0 <= int(value) <= 6):
-        logging.info("[CODE] vid_restarting..")
+        logging.info("vid_restarting..")
         serverstate.VID_RESTARTING = True
         serverstate.PAUSE_STATE = True
         api.exec_command(f"r_picmip {value};vid_restart")
@@ -232,7 +232,7 @@ async def gamma(ctx, author, args):
         return
     value = float(args[0])
     if 0.5 <= (value) <= 1.6:
-        logging.info("[CODE] i did it..")
+        logging.info("i did it..")
         api.exec_command(f"r_gamma {value}")
         MapData.save(serverstate.STATE.mapname, 'gamma', value)
     else:

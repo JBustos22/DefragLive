@@ -121,18 +121,18 @@ class State:
 
     def handle_vote(self):
         if time.time() - self.vote_time > VOTE_TALLY_TIME:
-            logging.info("[CODE] Voting tally done.")
+            logging.info("Voting tally done.")
             if self.vn_count > self.vy_count:
                 api.exec_command(f"say ^3{self.vy_count} ^2f1 ^7vs. ^3{self.vn_count} ^1f2^7. Voting ^3f2^7.")
-                logging.info(f"[CODE] {self.vy_count} f1s vs. {self.vn_count} f2s. Voting f2.")
+                logging.info(f"{self.vy_count} f1s vs. {self.vn_count} f2s. Voting f2.")
                 api.exec_command("vote no")
             elif self.vy_count > self.vn_count:
                 api.exec_command(f"say ^3{self.vy_count} ^2f1 ^7vs. ^3{self.vn_count} ^1f2^7. Voting ^3f1^7.")
-                logging.info(f"[CODE] {self.vy_count} f1s vs. {self.vn_count} f2s. Voting f1.")
+                logging.info(f"{self.vy_count} f1s vs. {self.vn_count} f2s. Voting f1.")
                 api.exec_command("vote yes")
             else:
                 api.exec_command(f"say ^3{self.vy_count} ^2f1 ^7vs. ^3{self.vn_count} ^1f2^7. No action.")
-                logging.info(f"[CODE] {self.vy_count} f1s vs. {self.vn_count} f2s. Not voting.")
+                logging.info(f"{self.vy_count} f1s vs. {self.vn_count} f2s. Not voting.")
 
             self.vote_time = 0
             self.voter_names = []
@@ -205,7 +205,7 @@ def start():
             else:
                 prev_state, curr_state = None, None
                 initialize_state()  # Handle the first state fetch. Some extra processing needs to be done this time.
-                logging.info(f"[CODE] State failed: {e}")
+                logging.info(f"State failed: {e}")
             time.sleep(1)
 
 
@@ -253,7 +253,7 @@ def initialize_state():
         STATE.current_player_id = bot_id
         STATE.num_players = num_players
         STATE_INITIALIZED = True
-        logging.info("[CODE] State Initialized.")
+        logging.info("State Initialized.")
     except:
         return False
 
@@ -292,7 +292,7 @@ def validate_state():
             # Add them to the afk list
             STATE.afk_ids.append(STATE.current_player_id) if STATE.current_player_id not in STATE.afk_ids else None
             if not PAUSE_STATE:
-                logging.info("[CODE] AFK. Switching...")
+                logging.info("AFK. Switching...")
                 api.display_message("^3AFK detected. ^7Switching to the next player.", time=5)
                 STATE.afk_counter = 0  # Reset AFK strike counter for next player
         except ValueError:
@@ -317,7 +317,7 @@ def validate_state():
                 STATE.current_player_id = STATE.bot_id
             else:  # Was already spectating self. This is an idle strike
                 STATE.idle_counter += 1
-                logging.info(f"[CODE] Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
+                logging.info(f"Not spectating. Strike {STATE.idle_counter}/{IDLE_TIMEOUT}")
                 if not PAUSE_STATE:
                     api.display_message(f"^3Strike {STATE.idle_counter}/{IDLE_TIMEOUT}", time=1)
 
@@ -350,13 +350,13 @@ def validate_state():
         if inputs == '': # Empty key presses. This is an AFK strike.
             STATE.afk_counter += 1
             if STATE.afk_counter >= 15 and STATE.afk_counter % 5 == 0:
-                logging.info(f"[CODE] AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
+                logging.info(f"AFK detected. Strike {STATE.afk_counter}/{AFK_TIMEOUT}")
                 api.display_message(f" AFK detected. Switching in {(int(AFK_TIMEOUT-STATE.afk_counter)*2)} seconds.", time=5)
         else:
             # Activity detected, reset AFK strike counter and empty AFK list + ip blacklist
             if STATE.afk_counter >= 15:
                 api.display_message("Activity detected. ^3AFK counter aborted.")
-                logging.info("[CODE] Activity detected. AFK counter aborted.")
+                logging.info("Activity detected. AFK counter aborted.")
 
             STATE.afk_counter = 0
             STATE.afk_ids = []
@@ -373,7 +373,7 @@ def connect(ip, caller=None):
     global IGNORE_IPS
 
     STATE_INITIALIZED = False
-    logging.info(f"[CODE] Connecting to {ip}...")
+    logging.info(f"Connecting to {ip}...")
     PAUSE_STATE = True
     CONNECTING = True
     STATE.idle_counter = 0
