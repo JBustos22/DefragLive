@@ -12,9 +12,10 @@ import serverstate
 import time
 import api
 import logging
+from env import environ
 
-STORAGE_PATH = "../storage/mapdata.db"
-MAPDATA_TABLE = "mapdata"
+STORAGE_PATH = environ['MAP_DATA']['STORAGE_PATH']
+MAPDATA_TABLE = environ['MAP_DATA']['MAPDATA_TABLE']
 
 SAVED_CMDS = {
     "angles" : {
@@ -160,6 +161,8 @@ def mapdataHook():
                 for key, value in SAVED_CMDS.items():
                     cmd += ";" + SAVED_CMDS[key]['cmd'] + " " + str(SAVED_CMDS[key]['default'])
 
+            serverstate.VID_RESTARTING = True
+            serverstate.PAUSE_STATE = True
             api.exec_command(cmd + "; vid_restart")
 
         time.sleep(4)

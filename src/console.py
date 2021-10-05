@@ -154,7 +154,7 @@ def process_line(line):
                 serverstate.STATE.init_vote()
                 api.exec_command("say ^7Vote detected. Should I vote yes or no? Send ^3?^7f1 for yes and ^3?^7f2 for no.")
 
-        if line in ('execing respawn.cfg', "report written to system/reports/initialstate.txt"):
+        if line.startswith('Not recording a demo.') or line.startswith("report written to system/reports/initialstate.txt"):
             if serverstate.CONNECTING:
                 time.sleep(1)
                 serverstate.CONNECTING = False

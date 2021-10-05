@@ -20,5 +20,9 @@ environ = {
         'key': "",
         'host': ""
     },
-    "DEVELOPMENT": False # True if you're developing, False if you're using the production server
+    "DEVELOPMENT": False, # True if you're developing, False if you're using the production server
+    "MAP_DATA": {
+        "STORAGE_PATH": "",
+        "MAPDATA_TABLE": ""
+    }
 }
