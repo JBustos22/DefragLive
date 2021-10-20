@@ -27,8 +27,7 @@ df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] !
 # Note: sound file name music be the same as command name (without $)
 SOUND_CMDS = [
     '$4ity',
-    '$holy',
-    '$holy1'
+    '$holy'
 ]
 
 # Twitch commands that start with (?), to add a command
