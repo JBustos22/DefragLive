@@ -64,6 +64,7 @@ class State:
         self.vy_count = 0
         self.vn_count = 0
         self.voter_names = []
+        self.show_name = True
 
     def __str__(self):
         return str(self.__class__) + ": " + str(self.__dict__)
@@ -457,8 +458,25 @@ def display_player_name(follow_id):
     follow_player = STATE.get_player_by_id(follow_id)
     if follow_player is not None:
         player_name = follow_player.n
-        display_name = player_name if player_name.strip() not in config.get_list('blacklist_names') else "*" * len(player_name)
-        # api.exec_command(f"set player-name {display_name}") # uncomment to censor blacklisted names
+        if check_for_blacklist_name(player_name):
+            if STATE.show_name == True:
+                logging.info(f"name is blacklisted: {player_name}")
+                api.exec_command(f"set df_hud_drawSpecfollow 0")
+                STATE.show_name = False
+        else:
+            if STATE.show_name == False:
+                api.exec_command(f"set df_hud_drawSpecfollow 1")
+                STATE.show_name = True
+
+
+
+def check_for_blacklist_name(plyr_name):
+    name = plyr_name.strip()
+    blacklisted_words = config.get_list('blacklist_names')
+    for word in blacklisted_words:
+        if word in name.lower():
+            return True
+    return False
 
 
 def get_svinfo_report(filename):

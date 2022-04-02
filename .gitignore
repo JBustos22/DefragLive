@@ -134,3 +134,4 @@ logs/
 storage/*.db
 src/test.py
 idea.txt
+lists/
