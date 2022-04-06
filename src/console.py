@@ -15,6 +15,7 @@ import json
 import api
 from hashlib import blake2b
 import logging
+import twitch_commands
 
 LOG = []
 CONSOLE_DISPLAY = []
@@ -119,6 +120,8 @@ def process_line(line):
         "timestamp": time.time()
     }
 
+    errors = ['ERROR: Unhandled exception cought'] # you can add more errors like this: ['error1', 'error2', 'error3']
+
 
     # SERVERCOMMAND
 
@@ -128,6 +131,13 @@ def process_line(line):
             pass
         else:
             logging.info(f"[Q3] {line}")
+
+        for error in errors:
+            if error in line:
+                logging.info(f"Error detected: [{line}]")
+                logging.info("Executing command restart")
+                twitch_commands.restart(None, None, None)
+                break
 
         if line in {"VoteVote passed.", "RE_Shutdown( 0 )"}:
             if not serverstate.PAUSE_STATE:
