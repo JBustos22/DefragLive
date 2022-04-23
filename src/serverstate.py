@@ -441,7 +441,7 @@ def spectate_player(follow_id):
     IGNORE_IPS = []
     STATE.afk_list = []
     if follow_id in STATE.spec_ids:
-        display_player_name(follow_id)
+##        display_player_name(follow_id)
         api.exec_command(f"follow {follow_id}")  # Follow this player.
         STATE.idle_counter = 0  # Reset idle strike flag since a followable non-bot id was found.
         STATE.current_player_id = follow_id  # Notify the state object of the new player we are spectating.
