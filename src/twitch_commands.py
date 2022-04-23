@@ -56,8 +56,8 @@ async def prev(ctx, author, args):
     api.exec_command(f"cg_centertime 2;displaymessage 140 10 ^3{author} ^7has switched to ^3Previous player")
 
 
-async def scores(ctx, author, args):
-    api.hold_key(config.get_bind("+scores"), 4.5)
+##async def scores(ctx, author, args):
+##    api.hold_key(config.get_bind("+scores"), 4.5)
 
 
 async def triggers(ctx, author, args):
@@ -80,8 +80,8 @@ async def snaps(ctx, author, args):
     api.exec_command(f"toggle mdd_snap 0 3;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3snaps hud")
 
 
-async def fixchat(ctx, author, args):
-    api.exec_command(f"cl_noprint 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has fixed: ^3ingame chat")
+##async def fixchat(ctx, author, args):
+##    api.exec_command(f"cl_noprint 0;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has fixed: ^3ingame chat")
 
 
 async def cgaz(ctx, author, args):
@@ -92,7 +92,6 @@ async def nodraw(ctx, author, args):
     api.exec_command(f"toggle df_mp_NoDrawRadius 100 100000;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Players visibility")
     MapData.toggle(serverstate.STATE.mapname, 'nodraw', 100000, 100)
     
-
 
 async def angles(ctx, author, args):
     api.exec_command(f"toggle df_chs1_Info6 0 40;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Weapon angles")
@@ -108,8 +107,8 @@ async def drawgun(ctx, author, args):
     MapData.toggle(serverstate.STATE.mapname, 'drawgun', 2, 1)
 
 
-async def clean(ctx, author, args):
-    api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Clean POV")
+##async def clean(ctx, author, args):
+##    api.exec_command(f"toggle cg_draw2D 0 1;wait 10;toggle mdd_hud 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ##^3Clean POV")
 
 
 async def sky(ctx, author, args):
@@ -148,8 +147,8 @@ async def slick(ctx, author, args):
     api.exec_command(f"toggle r_renderSlickSurfaces 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Slick highlighted")
 
 
-async def n1(ctx, author, args):
-    api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117)^2!")
+##async def n1(ctx, author, args):
+##    api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117)^2!")
 
 
 async def map(ctx, author, args):
@@ -158,31 +157,31 @@ async def map(ctx, author, args):
     await ctx.channel.send(msg)
 
 
-async def check(ctx, author, args):
-    api.exec_command(f"r_mapoverbrightbits;r_gamma")
+##async def check(ctx, author, args):
+##    api.exec_command(f"r_mapoverbrightbits;r_gamma")
 
 
-async def speclist(ctx, author, args):
-    msg = f"Watchable players:" \
-            f" {serverstate.STATE.get_specable_players()} " \
-            f"-- Do ?spec # to spectate a specific player, where # is their id number."
-    await ctx.channel.send(msg)
-    api.hold_key(config.get_bind("+scores"), 4.5)
+##async def speclist(ctx, author, args):
+##    msg = f"Watchable players:" \
+##            f" {serverstate.STATE.get_specable_players()} " \
+##            f"-- Do ?spec # to spectate a specific player, where # is their id number."
+##    await ctx.channel.send(msg)
+##    api.hold_key(config.get_bind("+scores"), 4.5)
+##
+##    if len(serverstate.STATE.nospec_ids) > 0:
+##        nospec_msg = f"NOTE: " \
+##                f"The following player{'s' if len(serverstate.STATE.nospec_ids) > 1 else ''} " \
+##                f"{'have' if len(serverstate.STATE.nospec_ids) > 1 else 'has'} disabled spec permissions: " \
+##                f"{serverstate.STATE.get_nospec_players()}"
+##        await ctx.channel.send(nospec_msg)
 
-    if len(serverstate.STATE.nospec_ids) > 0:
-        nospec_msg = f"NOTE: " \
-                f"The following player{'s' if len(serverstate.STATE.nospec_ids) > 1 else ''} " \
-                f"{'have' if len(serverstate.STATE.nospec_ids) > 1 else 'has'} disabled spec permissions: " \
-                f"{serverstate.STATE.get_nospec_players()}"
-        await ctx.channel.send(nospec_msg)
 
-
-async def spec(ctx, author, args):
-    follow_id = args[0]
-    msg = serverstate.spectate_player(follow_id)
-    await ctx.channel.send(msg)
-    time.sleep(1)
-    api.exec_command(f"cg_centertime 3;varcommand displaymessage 140 10 ^3{author} ^7has switched to $chsinfo(117)")
+##async def spec(ctx, author, args):
+##    follow_id = args[0]
+##    msg = serverstate.spectate_player(follow_id)
+##    await ctx.channel.send(msg)
+##    time.sleep(1)
+##    api.exec_command(f"cg_centertime 3;varcommand displaymessage 140 10 ^3{author} ^7has switched to $chsinfo(117)")
 
 
 async def server(ctx, author, args):

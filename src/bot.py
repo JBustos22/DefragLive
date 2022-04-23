@@ -48,7 +48,7 @@ TWITCH_CMDS = [
     ["angles"],
     ["obs"],
     ["drawgun"],
-    ["clean"],
+##    ["clean"],
     ["sky"],
     ["speedinfo"],
     ["speedorig"],
@@ -61,7 +61,7 @@ TWITCH_CMDS = [
     ["n1"],
     ["map"],
     ["check"],
-    ["speclist"],
+##    ["speclist"],
     ["spec"],
     ["brightness"],
     ["picmip"],
@@ -70,14 +70,14 @@ TWITCH_CMDS = [
     ["reshade"],
     ["next", "n"],
     ["prev", "p"],
-    ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"],
+##    ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"],
     ["server", "sv"],
     ["ip"]
 ]
 
 # bot setup
 bot = commands.Bot(
-    irc_token=environ['TMI_TOKEN'],
+    token=environ['TMI_TOKEN'],
     client_id=environ['CLIENT_ID'],
     nick=environ['BOT_NICK'],
     prefix=environ['BOT_PREFIX'],
