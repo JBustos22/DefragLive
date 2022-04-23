@@ -147,8 +147,8 @@ async def slick(ctx, author, args):
     api.exec_command(f"toggle r_renderSlickSurfaces 0 1;cg_centertime 3;displaymessage 140 10 ^3{author} ^7has changed: ^3Slick highlighted")
 
 
-##async def n1(ctx, author, args):
-##    api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117)^2!")
+async def n1(ctx, author, args):
+    api.exec_command(f"varcommand say ^{author[0]}{author} ^7> ^2Nice one, $chsinfo(117)^2!")
 
 
 async def map(ctx, author, args):

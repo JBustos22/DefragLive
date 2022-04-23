@@ -77,7 +77,7 @@ TWITCH_CMDS = [
 
 # bot setup
 bot = commands.Bot(
-    token=environ['TMI_TOKEN'],
+    irc_token=environ['TMI_TOKEN'],
     client_id=environ['CLIENT_ID'],
     nick=environ['BOT_NICK'],
     prefix=environ['BOT_PREFIX'],
