@@ -27,7 +27,8 @@ df_channel = environ['CHANNEL'] if 'CHANNEL' in environ and environ['CHANNEL'] !
 # Note: sound file name music be the same as command name (without $)
 SOUND_CMDS = [
     '$4ity',
-    '$holy'
+    '$holy',
+    '$holy1'
 ]
 
 # Twitch commands that start with (?), to add a command
@@ -47,7 +48,7 @@ TWITCH_CMDS = [
     ["angles"],
     ["obs"],
     ["drawgun"],
-    ["clean"],
+##    ["clean"],
     ["sky"],
     ["speedinfo"],
     ["speedorig"],
@@ -60,7 +61,7 @@ TWITCH_CMDS = [
     ["n1"],
     ["map"],
     ["check"],
-    ["speclist"],
+##    ["speclist"],
     ["spec"],
     ["brightness"],
     ["picmip"],
@@ -69,13 +70,14 @@ TWITCH_CMDS = [
     ["reshade"],
     ["next", "n"],
     ["prev", "p"],
-    ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"],
-    ["server", "sv"]
+##    ["scores", "scoreboard","score","scoreboards","scr","sc","scrs","scors","scroes","scar","scora","sorces","scoars","scs","scrose"],
+    ["server", "sv"],
+    ["ip"]
 ]
 
 # bot setup
 bot = commands.Bot(
-    irc_token=environ['TMI_TOKEN'],
+    token=environ['TMI_TOKEN'],
     client_id=environ['CLIENT_ID'],
     nick=environ['BOT_NICK'],
     prefix=environ['BOT_PREFIX'],
