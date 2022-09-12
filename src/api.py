@@ -91,4 +91,4 @@ def hold_key(x, duration):
         logging.info(f"Window not active. {x} was not sent to the client.")
 
 def reset_visuals():
-    api.exec_command(f"df_chs1_Info6 0;r_picmip 0;r_gamma 1;r_mapoverbrightbits 2;df_mp_NoDrawRadius 100;cg_drawgun 1")
+    exec_command(f"df_chs1_Info6 0;r_picmip 0;r_gamma 1;r_mapoverbrightbits 2;df_mp_NoDrawRadius 100;cg_drawgun 1")

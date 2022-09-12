@@ -18,7 +18,10 @@ import os
 import servers
 import logging
 import threading
+import json
+from hashlib import md5
 # import mapdata
+from websocket_console import notify_serverstate_change
 
 
 # Configurable variables, Strike = 2seconds
@@ -165,7 +168,7 @@ def start():
     global PAUSE_STATE
     global VID_RESTARTING
 
-    prev_state, curr_state = None, None
+    prev_state, prev_state_hash, curr_state = None, None, None
     initialize_state()
     while True:
         try:
@@ -191,12 +194,14 @@ def start():
                         STATE.update_info(server_info)
                         STATE.num_players = num_players
                         validate_state()  # Check for nospec, self spec, afk, and any other problems.
+                        curr_state_hash = md5(f'{curr_state}_{num_players}_{str([pl.__dict__ for pl in STATE.players])}'.encode('utf-8')).digest()
                         if STATE.current_player is not None and STATE.current_player_id != STATE.bot_id:
                             curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
                                          f" in server {STATE.hostname} | ip: {STATE.ip}"
-                        if curr_state != prev_state:
-                            logging.info(curr_state)
+                        if curr_state_hash != prev_state_hash:
+                            notify_serverstate_change() # Notify all websocket clients about new serverstate
                         prev_state = curr_state
+                        prev_state_hash = curr_state_hash
                         display_player_name(STATE.current_player_id)
                 if getattr(STATE, 'vote_active', False):
                     STATE.handle_vote()
@@ -204,7 +209,7 @@ def start():
             if e.args[0] == 'Paused':
                 pass
             else:
-                prev_state, curr_state = None, None
+                prev_state, prev_state_hash, curr_state = None, None, None
                 initialize_state()  # Handle the first state fetch. Some extra processing needs to be done this time.
                 logging.info(f"State failed: {e}")
             time.sleep(1)
