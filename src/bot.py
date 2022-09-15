@@ -217,7 +217,13 @@ if __name__ == "__main__":
     serverstate_thread = threading.Thread(target=serverstate.start, daemon=True)
     serverstate_thread.start()
 
-    flask_thread = threading.Thread(target=websocket_console.app.run, daemon=True)
+    flask_thread = threading.Thread(target=websocket_console.app.run, 
+                                    daemon=True, 
+                                    kwargs={
+                                        'host': environ['FLASK_SERVER']['host'], 
+                                        'port': environ['FLASK_SERVER']['port']
+                                    }
+    )
     flask_thread.start()
     
     ws_loop = asyncio.new_event_loop()
