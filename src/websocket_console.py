@@ -86,24 +86,40 @@ def raw_console_log():
     return output
 
 
-@app.route('/console/send', methods=['POST'])
-def send_message():
-    author = request.form.get('author', None)
-    message = request.form.get('message', None)
-    command = request.form.get('command', None)
+@app.route('/console/delete_message/<id>')
+def delete_message(id):
+    output = jsonify({'status': 'ok'})
 
-    if command is not None and command.startswith("!"):
-        if ";" in command:  # prevent q3 command injections
-            command = command[:command.index(";")]
-        api.exec_command(command)
-        return jsonify(result=f"Sent mdd command {command}")
-    else:
-        if ";" in message:  # prevent q3 command injections
-            message = message[:message.index(";")]
-        api.exec_command(f"say {author} ^7> ^2{message}")
-        return jsonify(result=f"Sent {author} ^7> ^2{message}")
+    for idx, msg in enumerate(console.CONSOLE_DISPLAY):
+        if msg['id'] == id:
+            print('delete', id, msg)
+            del console.CONSOLE_DISPLAY[idx]
+            break
 
-    return jsonify(result="Unknown message")
+    # TODO: fix CORS for production
+    output.headers['Access-Control-Allow-Origin'] = '*'
+
+    return output
+
+
+# @app.route('/console/send', methods=['POST'])
+# def send_message():
+#     author = request.form.get('author', None)
+#     message = request.form.get('message', None)
+#     command = request.form.get('command', None)
+
+#     if command is not None and command.startswith("!"):
+#         if ";" in command:  # prevent q3 command injections
+#             command = command[:command.index(";")]
+#         api.exec_command(command)
+#         return jsonify(result=f"Sent mdd command {command}")
+#     else:
+#         if ";" in message:  # prevent q3 command injections
+#             message = message[:message.index(";")]
+#         api.exec_command(f"say {author} ^7> ^2{message}")
+#         return jsonify(result=f"Sent {author} ^7> ^2{message}")
+
+#     return jsonify(result="Unknown message")
 
 
 # ------------------------------------------------------------
@@ -127,6 +143,14 @@ def handle_ws_command(msg):
     if type(content) != dict:
         return
 
+    if content['action'] == 'delete_message':
+        for idx, msg in enumerate(console.CONSOLE_DISPLAY):
+            if msg['id'] == content['id']:
+                print('delete', content['id'], msg)
+                del console.CONSOLE_DISPLAY[idx]
+                break
+        return
+
     if content['action'] == 'spectate':
         if content['value'] == 'next':
             serverstate.switch_spec('next')
@@ -137,7 +161,6 @@ def handle_ws_command(msg):
             id = content['value'].split(':')[1]
             serverstate.spectate_player(id)
             time.sleep(1)
-            pass
 
 
 def on_ws_message(msg):

@@ -25,9 +25,42 @@ SPECIAL_NUMBERS = {
 def strip_q3_colors(value):
     return re.sub(r'\^(X.{6}|.)', '', value)
 
+# replaces "w o r d" with "word"
+def strip_spaces_after_every_letter(value):
+    tokens = value.split(' ')
+    start_idx = 0
+    prev_was_letter = False
+    for idx, tok in enumerate(tokens):
+        if tok == '':
+            continue
+        if len(tok) == 1:
+            if prev_was_letter:
+                tokens[start_idx] += tok
+                tokens[idx] = ''
+            else:
+                prev_was_letter = True
+                start_idx = idx
+        else:
+            prev_was_letter = False
+
+    return ' '.join(tokens)
+
+
+
+def strip_repeated_characters(value):
+    result = []
+    for x in value:
+        if not result or result[-1] != x:
+            result.append(x)
+    return ''.join(result)
+
 def clean_string(value):
     pass1 = strip_q3_colors(value)
-    return re.sub(r'[^a-zA-Z0-9 ]', '', pass1)
+    pass2 = strip_spaces_after_every_letter(pass1)
+    pass3 = re.sub(r'[^a-zA-Z0-9 ]', '', pass2)
+    pass4 = strip_repeated_characters(pass3)
+    print(pass4)
+    return pass4
 
 
 def init():
@@ -103,7 +136,7 @@ def filter_message(msg, separator=' ^7> '):
     if len(naughty_words) > 0:
         for end_index, (insert_order, original_value) in naughty_words:
             start_index = end_index - len(original_value) + 1
-            # print((start_index, end_index, (insert_order, original_value)))
+            print((start_index, end_index, (insert_order, original_value)))
 
             msg_stripped = msg_stripped[:start_index] + ('*'*len(original_value)) + msg_stripped[end_index+1:]
 

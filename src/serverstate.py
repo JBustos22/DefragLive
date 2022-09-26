@@ -26,8 +26,8 @@ from websocket_console import notify_serverstate_change
 
 # Configurable variables, Strike = 2seconds
 MESSAGE_REPEATS = 1  # How many times to spam info messages. 0 for no messages.
-AFK_TIMEOUT = 40  # Switch after afk detected x consecutive times.
-IDLE_TIMEOUT = 5  # Alone in server timeout.
+AFK_TIMEOUT = 999999 if config.DEVELOPMENT else 40  # Switch after afk detected x consecutive times.
+IDLE_TIMEOUT = 999999 if config.DEVELOPMENT else 5  # Alone in server timeout.
 INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
 STANDBY_TIME = 15  # Amount of time to standby in minutes
 VOTE_TALLY_TIME = 5  # Amount of time to wait while tallying votes

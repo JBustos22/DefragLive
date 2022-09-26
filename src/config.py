@@ -2,6 +2,7 @@ import re
 import os
 from env import environ
 
+DEVELOPMENT = environ["DEVELOPMENT"]
 DF_EXE_PATH = environ["DF_EXE_PATH"]
 DF_DIR = environ['DF_DIR']
 CFG_NAME = environ['CFG_NAME']
