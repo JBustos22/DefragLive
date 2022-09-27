@@ -92,7 +92,6 @@ def delete_message(id):
 
     for idx, msg in enumerate(console.CONSOLE_DISPLAY):
         if msg['id'] == id:
-            print('delete', id, msg)
             del console.CONSOLE_DISPLAY[idx]
             break
 
@@ -101,6 +100,14 @@ def delete_message(id):
 
     return output
 
+
+# ASGI server
+def run_flask_server(host, port):
+    import uvicorn
+    from asgiref.wsgi import WsgiToAsgi
+
+    asgi_app = WsgiToAsgi(app)
+    uvicorn.run(asgi_app, host=host, port=port, log_level="warning")
 
 # @app.route('/console/send', methods=['POST'])
 # def send_message():

@@ -19,7 +19,9 @@ SPECIAL_NUMBERS = {
     '7': ['t'],
     '8': ['b'],
     '9': ['g'],
-    'l': ['i']
+    'l': ['i'],
+    '!': ['i', 'l'],
+    '|': ['i', 'l']
 }
 
 def strip_q3_colors(value):
@@ -56,10 +58,9 @@ def strip_repeated_characters(value):
 
 def clean_string(value):
     pass1 = strip_q3_colors(value)
-    pass2 = strip_spaces_after_every_letter(pass1)
-    pass3 = re.sub(r'[^a-zA-Z0-9 ]', '', pass2)
-    pass4 = strip_repeated_characters(pass3)
-    print(pass4)
+    pass2 = re.sub(r'[^a-zA-Z0-9!\| ]', '', pass1)
+    # pass3 = strip_spaces_after_every_letter(pass2)
+    pass4 = strip_repeated_characters(pass2)
     return pass4
 
 
@@ -127,6 +128,7 @@ def filter_message(msg, separator=' ^7> '):
     msg_stripped_special = msg_lower
 
     for msg_item in msg_stripped_array:
+        msg_item = strip_repeated_characters(msg_item.replace(' ', ''))
         naughty_words = list(chat_automaton.iter(msg_item, ignore_white_space=True))
         if len(naughty_words) > 0:
             msg_stripped_special = msg_item
