@@ -138,7 +138,7 @@ def filter_message(msg, separator=' ^7> '):
     if len(naughty_words) > 0:
         for end_index, (insert_order, original_value) in naughty_words:
             start_index = end_index - len(original_value) + 1
-            print((start_index, end_index, (insert_order, original_value)))
+            #print((start_index, end_index, (insert_order, original_value)))
 
             msg_stripped = msg_stripped[:start_index] + ('*'*len(original_value)) + msg_stripped[end_index+1:]
 
@@ -154,7 +154,8 @@ def filter_author(author, replace_with='^7UnnamedPlayer'):
     author_stripped_special = author_lower
 
     for msg_item in author_stripped_array:
-        naughty_words = list(chat_automaton.iter(msg_item, ignore_white_space=True))
+        msg_item = strip_repeated_characters(msg_item.replace(' ', ''))
+        naughty_words = list(authors_automaton.iter(msg_item, ignore_white_space=True))
         if len(naughty_words) > 0:
             author_stripped_special = msg_item
             break

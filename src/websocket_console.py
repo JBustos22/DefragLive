@@ -104,10 +104,11 @@ def delete_message(id):
 # ASGI server
 def run_flask_server(host, port):
     import uvicorn
-    from asgiref.wsgi import WsgiToAsgi
+    import asgiref.wsgi
 
-    asgi_app = WsgiToAsgi(app)
-    uvicorn.run(asgi_app, host=host, port=port, log_level="warning")
+    asgi_app = asgiref.wsgi.WsgiToAsgi(app)
+    uvicorn.run(asgi_app, host=host, port=port, log_level="warning", access_log=False)
+
 
 # @app.route('/console/send', methods=['POST'])
 # def send_message():
@@ -141,7 +142,7 @@ def notify_serverstate_change():
 
 
 def handle_ws_command(msg):
-    print('[WS] Handle command:', msg)
+    logging.info('[WS] Handle command: %s', str(msg))
 
     content = msg['message']['content']
     author = 'Guest'
@@ -153,7 +154,6 @@ def handle_ws_command(msg):
     if content['action'] == 'delete_message':
         for idx, msg in enumerate(console.CONSOLE_DISPLAY):
             if msg['id'] == content['id']:
-                print('delete', content['id'], msg)
                 del console.CONSOLE_DISPLAY[idx]
                 break
         return

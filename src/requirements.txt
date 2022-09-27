@@ -3,7 +3,7 @@ aiohttp==3.6.3
 aiorun==2020.11.1
 altgraph==0.17
 amqp==5.0.1
-asgiref==3.5.2
+asgiref==3.3.4
 async-timeout==3.0.1
 attrs==20.2.0
 backcall==0.2.0
