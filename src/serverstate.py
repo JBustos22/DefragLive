@@ -18,13 +18,16 @@ import os
 import servers
 import logging
 import threading
+import json
+from hashlib import md5
 # import mapdata
+from websocket_console import notify_serverstate_change
 
 
 # Configurable variables, Strike = 2seconds
 MESSAGE_REPEATS = 1  # How many times to spam info messages. 0 for no messages.
-AFK_TIMEOUT = 40  # Switch after afk detected x consecutive times.
-IDLE_TIMEOUT = 5  # Alone in server timeout.
+AFK_TIMEOUT = 999999 if config.DEVELOPMENT else 40  # Switch after afk detected x consecutive times.
+IDLE_TIMEOUT = 999999 if config.DEVELOPMENT else 5  # Alone in server timeout.
 INIT_TIMEOUT = 10  # Determines how many times to try the state initialization before giving up.
 STANDBY_TIME = 15  # Amount of time to standby in minutes
 VOTE_TALLY_TIME = 5  # Amount of time to wait while tallying votes
@@ -165,7 +168,7 @@ def start():
     global PAUSE_STATE
     global VID_RESTARTING
 
-    prev_state, curr_state = None, None
+    prev_state, prev_state_hash, curr_state = None, None, None
     initialize_state()
     while True:
         try:
@@ -191,12 +194,14 @@ def start():
                         STATE.update_info(server_info)
                         STATE.num_players = num_players
                         validate_state()  # Check for nospec, self spec, afk, and any other problems.
+                        curr_state_hash = md5(f'{curr_state}_{num_players}_{str([pl.__dict__ for pl in STATE.players])}'.encode('utf-8')).digest()
                         if STATE.current_player is not None and STATE.current_player_id != STATE.bot_id:
                             curr_state = f"Spectating {STATE.current_player.n} on {STATE.mapname}" \
                                          f" in server {STATE.hostname} | ip: {STATE.ip}"
-                        if curr_state != prev_state:
-                            logging.info(curr_state)
+                        if curr_state_hash != prev_state_hash:
+                            notify_serverstate_change() # Notify all websocket clients about new serverstate
                         prev_state = curr_state
+                        prev_state_hash = curr_state_hash
                         display_player_name(STATE.current_player_id)
                 if getattr(STATE, 'vote_active', False):
                     STATE.handle_vote()
@@ -204,7 +209,7 @@ def start():
             if e.args[0] == 'Paused':
                 pass
             else:
-                prev_state, curr_state = None, None
+                prev_state, prev_state_hash, curr_state = None, None, None
                 initialize_state()  # Handle the first state fetch. Some extra processing needs to be done this time.
                 logging.info(f"State failed: {e}")
             time.sleep(1)

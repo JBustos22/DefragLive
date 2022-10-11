@@ -134,4 +134,5 @@ logs/
 storage/*.db
 src/test.py
 idea.txt
-lists/
+lists/blacklist*
+lists/whitelist*
